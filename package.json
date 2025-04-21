@@ -1,0 +1,16 @@
+{
+  "name": "screeps-debug",
+  "version": "1.0.0",
+  "description": "Screeps debugging environment",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "debug": "node --inspect main.js"
+  },
+  "dependencies": {
+    "screeps-api": "^1.14.0"
+  },
+  "devDependencies": {
+    "@types/screeps": "^3.3.0"
+  }
+} 

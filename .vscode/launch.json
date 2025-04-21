@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Screeps",
+            "program": "${workspaceFolder}/test.js",
+            "outFiles": ["${workspaceFolder}/**/*.js"],
+            "sourceMaps": true,
+            "console": "integratedTerminal"
+        }
+    ]
+} 
