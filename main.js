@@ -20,8 +20,11 @@ module.exports.loop = function () {
                 // Устанавливаем начальное состояние для нового крипа в его память
                 // Память будет доступна сразу после начала спавна
                  if(Memory.creeps && !Memory.creeps[creepName]) { // Проверка на всякий случай
-                     Memory.creeps[creepName] = { harvesting: true }; // Начинаем с добычи
-                     console.log('Установлено начальное состояние harvesting: true для ' + creepName);
+                     Memory.creeps[creepName] = { 
+                         harvesting: true,    // добыча энергии
+                         upgrading: false     // улучшение контроллера
+                     }; // Начинаем с добычи
+                     console.log('Установлено начальное состояние для ' + creepName);
                  }
             } else {
                 console.log('Ошибка при попытке создать крипа ' + creepName + ': ' + spawnResult);
@@ -49,29 +52,32 @@ module.exports.loop = function () {
             return; // Выходим из логики для этого крипа на этот тик
         }
 
-        // --- Управление состоянием крипа (добыча/возврат) ---
-        // Если крип несёт энергию и заполнился -> переключиться на возврат
-        if (creep.memory.harvesting && creep.store.getFreeCapacity() == 0) {
-            creep.memory.harvesting = false;
-            creep.say('🔄 несу'); // Крип скажет "несу"
-            console.log(creepName + ' заполнился, переключается на возврат энергии.');
-        }
-        // Если крип возвращал энергию и опустел -> переключиться на добычу
+        // --- Управление состоянием крипа ---
+        // Если крип пустой, идём добывать
         if (!creep.memory.harvesting && creep.store.getUsedCapacity() == 0) {
             creep.memory.harvesting = true;
-            creep.say('⚡ добываю'); // Крип скажет "добываю"
+            creep.memory.upgrading = false;
+            creep.say('⚡ добываю');
             console.log(creepName + ' опустел, переключается на добычу энергии.');
         }
-        // Если память не инициализирована (на всякий случай)
-        if (creep.memory.harvesting === undefined) {
-             creep.memory.harvesting = true;
-             console.log('Инициализация памяти для ' + creepName + ': harvesting = true');
+        // Если крип полный, решаем что делать дальше
+        if (creep.memory.harvesting && creep.store.getFreeCapacity() == 0) {
+            creep.memory.harvesting = false;
+            // Проверяем, полон ли спавн
+            if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                creep.memory.upgrading = true;
+                creep.say('⚡ улучшаю');
+                console.log(creepName + ' идет улучшать контроллер');
+            } else {
+                creep.memory.upgrading = false;
+                creep.say('🔄 несу');
+                console.log(creepName + ' несет энергию в спавн');
+            }
         }
-
 
         // --- Выполнение действий в зависимости от состояния ---
         if (creep.memory.harvesting) {
-            // Состояние: Добыча энергии
+            // Добыча энергии
             var sources = creep.room.find(FIND_SOURCES);
             if (sources.length > 0) {
                 var harvestResult = creep.harvest(sources[0]);
@@ -83,15 +89,28 @@ module.exports.loop = function () {
             } else {
                  console.log(creepName + ' не нашел источников энергии!');
             }
+        } else if (creep.memory.upgrading) {
+            // Улучшение контроллера
+            if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(creep.room.controller, { visualizePathStyle: { stroke: '#ffffff' } });
+            }
         } else {
-            // Состояние: Возврат энергии на спавн
+            // Перенос энергии в спавн
             if (spawn) { // Убедимся, что спавн найден
                 var transferResult = creep.transfer(spawn, RESOURCE_ENERGY);
                 if (transferResult == ERR_NOT_IN_RANGE) {
                     creep.moveTo(spawn, { visualizePathStyle: { stroke: '#ffffff' } }); // Белый путь к спавну
                 } else if (transferResult == ERR_FULL) {
                      console.log(creepName + ': Спавн ' + spawn.name + ' полон энергии.');
-                     // Можно добавить логику ожидания или поиска другого места для сдачи
+                     // Если спавн полон, идем улучшать контроллер
+                     var controller = creep.room.controller;
+                     if (controller) {
+                         var upgradeResult = creep.upgradeController(controller);
+                         if (upgradeResult == ERR_NOT_IN_RANGE) {
+                             creep.moveTo(controller, { visualizePathStyle: { stroke: '#ffffff' } });
+                         }
+                         console.log(creepName + ' улучшает контроллер');
+                     }
                 } else if (transferResult != OK) {
                     console.log(creepName + ' ошибка передачи энергии: ' + transferResult);
                 }
