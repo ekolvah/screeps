@@ -8,9 +8,10 @@
     "debug": "node --inspect main.js"
   },
   "dependencies": {
+    "lodash": "^4.17.21",
     "screeps-api": "^1.14.0"
   },
   "devDependencies": {
     "@types/screeps": "^3.3.0"
   }
-} 
+}

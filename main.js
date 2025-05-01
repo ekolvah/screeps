@@ -2,6 +2,7 @@
 const Config = require('./config');
 const Logger = require('./Logger');
 const GameStateManager = require('./GameStateManager');
+const lodash = require('lodash');
 
 // Подключаем базовый класс и роли
 const CreepBase = require('./CreepBase');
@@ -81,7 +82,7 @@ function manageSpawn(gameStateManager) {
 
     // Получаем крипов через менеджер состояния
     const creepsInGame = gameStateManager.getCreeps();
-    const creepsByRole = _.groupBy(creepsInGame, 'memory.role'); // Используем память из gameState
+    const creepsByRole = lodash.groupBy(creepsInGame, 'memory.role'); // Используем память из gameState
 
     // Задаем желаемое количество крипов для каждой роли
     const desiredCreeps = {
@@ -146,10 +147,20 @@ function manageSpawn(gameStateManager) {
     }
 }
 
-// --- Основной цикл игры ---
-module.exports.loop = function() {
+// Основная функция игрового цикла
+function gameLoop() {
+    console.log("Starting game loop...");
+    
     // 1. Инициализация менеджера состояния (определяет режим работы)
+    console.log("Initializing GameStateManager...");
     const gameStateManager = new GameStateManager();
+    
+    console.log("GameStateManager initialized. Debug mode:", gameStateManager.isDebugging);
+    if (gameStateManager.isDebugging) {
+        console.log("Debug state loaded:", !!gameStateManager.state);
+        console.log("Current tick:", gameStateManager.getTime());
+        console.log("Available creeps:", Object.keys(gameStateManager.getCreeps()));
+    }
 
     // 2. Логирование состояния (только в продакшене)
     if (!gameStateManager.isDebugging && Game.time % 5 === 0) { // Логируем не каждый тик для экономии CPU
@@ -226,3 +237,16 @@ module.exports.loop = function() {
     }
 
 }; // --- Конец module.exports.loop ---
+
+// Экспортируем функцию loop по-разному для продакшена и отладки
+if (Config.DEBUG_MODE) {
+    // В режиме отладки экспортируем как обычную функцию и сразу запускаем
+    module.exports.loop = gameLoop;
+    console.log("Debug mode detected, running first game loop...");
+    gameLoop();
+} else {
+    // В продакшене экспортируем как анонимную функцию (стандартный формат Screeps)
+    module.exports.loop = function() {
+        gameLoop();
+    };
+}

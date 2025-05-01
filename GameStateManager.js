@@ -13,6 +13,20 @@ class GameStateManager {
             if (Config.DEBUG_GAME_STATE) {
                 this.state = Config.DEBUG_GAME_STATE;
                 this._buildSimulatedObjects(); // Создаем симулированные объекты с методами
+                
+                // Создаем симулированный глобальный объект Game
+                global.Game = {
+                    time: this.getTime(),
+                    rooms: this.state.game.rooms,
+                    creeps: this.getCreeps(),
+                    spawns: this.getSpawns(),
+                    cpu: {
+                        getUsed: () => 0,
+                        limit: 20,
+                        bucket: 100
+                    }
+                };
+                
                 console.log(`GameStateManager: Initialized in DEBUG mode. Tick: ${this.getTime()}`);
             } else {
                 console.error("GameStateManager: DEBUG_MODE is true, but DEBUG_GAME_STATE is not loaded. Falling back to production mode.");
