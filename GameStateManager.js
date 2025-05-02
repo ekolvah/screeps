@@ -7,11 +7,6 @@ const constants = require('./screeps_constants');
  */
 class GameStateManager {
     constructor() {
-        if (GameStateManager.instance) {
-            return GameStateManager.instance;
-        }
-        GameStateManager.instance = this;
-        
         this.isDebugging = Config.DEBUG_MODE;
         this.state = null;
 
@@ -546,5 +541,5 @@ class GameStateManager {
     }
 }
 
-// Экспортируем экземпляр синглтона
-module.exports = new GameStateManager();
+// Экспортируем сам класс, а не экземпляр
+module.exports = GameStateManager;

@@ -1,6 +1,4 @@
 const CreepBase = require('./CreepBase');
-const screeps = require('./screeps_api');
-const { Game: GameAPI } = screeps;
 
 class Builder extends CreepBase {
 
@@ -47,8 +45,7 @@ class Builder extends CreepBase {
             this.handleMovingState(); // Начинаем движение сразу
         } else {
              this.creep.say?.('🚧 No sites');
-             // Нет строек? Можно улучшать контроллер или ремонтировать
-             // TODO: Добавить логику ремонта или улучшения контроллера
+
         }
     }
 

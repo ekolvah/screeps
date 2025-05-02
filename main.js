@@ -1,10 +1,9 @@
 // Подключаем конфигурацию и базовые модули
 const Config = require('./config');
 const Logger = require('./Logger');
-const GameStateManager = require('./GameStateManager'); // Получаем экземпляр синглтона
+const GameStateManager = require('./GameStateManager'); // Теперь импортируем класс
 const lodash = require('lodash');
-const screeps = require('./screeps_api');
-const { Game: GameAPI, Memory: MemoryAPI } = screeps;
+const screepsApiFactory = require('./screeps_api');
 
 // Подключаем базовый класс и роли
 const CreepBase = require('./CreepBase');
@@ -23,12 +22,12 @@ const roleMap = {
 
 // Функция определения тела крипа в зависимости от роли и доступной энергии
 // Теперь принимает GameStateManager для доступа к комнате в дебаге
-function getBodyForRole(role, gameStateManager) {
+function getBodyForRole(role, gameStateManager, screeps) {
      // Получаем доступную энергию (нужно для определения размера тела)
      // ВАЖНО: В дебаге это может быть неточным, если состояние комнаты не полное
      let energyAvailable = 300; // Значение по умолчанию
      if (!gameStateManager.isDebugging) {
-         const room = GameAPI.rooms[GameAPI.spawns['Spawn1']?.pos.roomName]; // Пример для комнаты спавна
+         const room = screeps.GameAPI.rooms[gameStateManager.getSpawn('Spawn1')?.pos.roomName]; // Пример для комнаты спавна
          if (room) {
              energyAvailable = room.energyAvailable;
          }
@@ -76,7 +75,7 @@ function getBodyForRole(role, gameStateManager) {
 
 
 // Функция управления спавном крипов
-function manageSpawn(gameStateManager) {
+function manageSpawn(gameStateManager, screeps) {
     const spawn = gameStateManager.getSpawn('Spawn1'); // Получаем спавн через менеджер
     if (!spawn || spawn.spawning) { // Если спавна нет или он занят
         return;
@@ -108,7 +107,7 @@ function manageSpawn(gameStateManager) {
     }
 
     if (newRole) {
-         const body = getBodyForRole(newRole, gameStateManager);
+         const body = getBodyForRole(newRole, gameStateManager, screeps);
          const name = `${newRole}-${gameStateManager.getTime()}`; // Используем время из менеджера
          const memory = { memory: { role: newRole, state: CreepBase.STATE_IDLE } }; // Начальное состояние IDLE
 
@@ -117,7 +116,7 @@ function manageSpawn(gameStateManager) {
 
          let energyAvailable = 300; // Default
          if (!gameStateManager.isDebugging) {
-            energyAvailable = GameAPI.rooms[spawn.pos.roomName].energyAvailable;
+            energyAvailable = screeps.GameAPI.rooms[spawn.pos.roomName].energyAvailable;
          } else if (gameStateManager.state.game.rooms[spawn.pos.roomName]) {
             energyAvailable = gameStateManager.state.game.rooms[spawn.pos.roomName].energyAvailable;
          }
@@ -155,8 +154,12 @@ function gameLoop() {
     
     // 1. Инициализация менеджера состояния (определяет режим работы)
     console.log("Initializing GameStateManager...");
-    // Используем существующий экземпляр синглтона
-    const gameStateManager = GameStateManager;
+    // Создаём новый экземпляр на каждый тик
+    const gameStateManager = new GameStateManager();
+    
+    // Создаем API-обертку для текущего тика
+    const screeps = screepsApiFactory(gameStateManager);
+    const { GameAPI, MemoryAPI } = screeps;
     
     console.log("GameStateManager initialized. Debug mode:", gameStateManager.isDebugging);
     if (gameStateManager.isDebugging) {
@@ -166,7 +169,7 @@ function gameLoop() {
     }
 
     // 2. Логирование состояния (только в продакшене)
-    if (!gameStateManager.isDebugging && GameAPI.time % 5 === 0) { // Логируем не каждый тик для экономии CPU
+    if (!gameStateManager.isDebugging ) { 
         console.log(`Tick ${GameAPI.time}:`);
         Logger.logState(GameAPI, MemoryAPI); // Используем реальные Game/Memory для лога
     }
@@ -207,8 +210,8 @@ function gameLoop() {
         const CreepRoleClass = roleMap[creep.memory.role];
         if (CreepRoleClass) {
             try {
-                // Передаем симулированный или реальный крип и менеджер состояния
-                const creepManager = new CreepRoleClass(creep, gameStateManager);
+                // Передаем симулированный или реальный крип, менеджер состояния и screeps API
+                const creepManager = new CreepRoleClass(creep, gameStateManager, screeps);
                 creepManager.handleState(); // Запускаем логику крипа
             } catch (error) {
                  console.log(`Error running state for creep ${name} (${creep.memory.role}): ${error.stack || error}`);
@@ -224,7 +227,7 @@ function gameLoop() {
     // или если хотим симулировать и логику спавна.
     // Сейчас вызываем всегда, чтобы видеть решения спавна.
     try {
-        manageSpawn(gameStateManager);
+        manageSpawn(gameStateManager, screeps);
     } catch (error) {
          console.log(`Error during spawn management: ${error.stack || error}`);
     }

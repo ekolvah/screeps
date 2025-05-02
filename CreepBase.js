@@ -1,14 +1,13 @@
-const screeps = require('./screeps_api');
-const { Game: GameAPI } = screeps;
-
 class CreepBase {
     /**
      * @param {Creep | object} creep Реальный или симулированный объект крипа.
      * @param {GameStateManager} gameStateManager Менеджер состояния игры.
+     * @param {object} screeps API-обёртка для текущего тика
      */
-    constructor(creep, gameStateManager) {
+    constructor(creep, gameStateManager, screeps) {
         this.creep = creep; // Может быть реальным или симулированным
         this.gameState = gameStateManager; // Сохраняем менеджер состояния
+        this.screeps = screeps; // Сохраняем API-обёртку
         this.memory = this.creep.memory; // Упрощенный доступ к памяти крипа
     }
 
@@ -44,6 +43,7 @@ class CreepBase {
 
     handleState() {
         // Проверяем, жив ли крип (актуально для продакшена и длинных симуляций)
+        const GameAPI = this.screeps.GameAPI;
         if (!this.creep || (!GameAPI.creeps[this.creep.name] && !this.gameState.isDebugging)) {
             console.log(`Creep ${this.creep?.name || 'unknown'} not found, skipping state handling.`);
             return;

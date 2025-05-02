@@ -1,6 +1,4 @@
 const CreepBase = require('./CreepBase');
-const screeps = require('./screeps_api');
-const { Game: GameAPI } = screeps;
 
 class Carrier extends CreepBase {
 
@@ -188,7 +186,7 @@ class Carrier extends CreepBase {
         if (!target) {
              const room = this.gameState.isDebugging
                 ? this.gameState.state.game.rooms[this.creep.pos.roomName]
-                : GameAPI.rooms[this.creep.pos.roomName];
+                : this.screeps.Game.rooms[this.creep.pos.roomName];
 
              if(room && room.storage && room.storage.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                   // В дебаге нужно получить симулированный объект storage
@@ -226,7 +224,7 @@ class Carrier extends CreepBase {
         if (!target) {
             const room = this.gameState.isDebugging
                 ? this.gameState.state.game.rooms[this.creep.pos.roomName]
-                : GameAPI.rooms[this.creep.pos.roomName];
+                : this.screeps.Game.rooms[this.creep.pos.roomName];
 
              if(room && room.storage && room.storage.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                   target = this.gameState.getObjectById(room.storage.id);
