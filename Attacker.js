@@ -1,4 +1,6 @@
 const CreepBase = require('./CreepBase');
+const screeps = require('./screeps_api');
+const { Game: GameAPI } = screeps;
 
 class Attacker extends CreepBase {
     handleIdleState() {

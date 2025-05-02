@@ -1,8 +1,10 @@
 // Подключаем конфигурацию и базовые модули
 const Config = require('./config');
 const Logger = require('./Logger');
-const GameStateManager = require('./GameStateManager');
+const GameStateManager = require('./GameStateManager'); // Получаем экземпляр синглтона
 const lodash = require('lodash');
+const screeps = require('./screeps_api');
+const { Game: GameAPI, Memory: MemoryAPI } = screeps;
 
 // Подключаем базовый класс и роли
 const CreepBase = require('./CreepBase');
@@ -26,7 +28,7 @@ function getBodyForRole(role, gameStateManager) {
      // ВАЖНО: В дебаге это может быть неточным, если состояние комнаты не полное
      let energyAvailable = 300; // Значение по умолчанию
      if (!gameStateManager.isDebugging) {
-         const room = Game.rooms[Game.spawns['Spawn1']?.pos.roomName]; // Пример для комнаты спавна
+         const room = GameAPI.rooms[GameAPI.spawns['Spawn1']?.pos.roomName]; // Пример для комнаты спавна
          if (room) {
              energyAvailable = room.energyAvailable;
          }
@@ -39,34 +41,34 @@ function getBodyForRole(role, gameStateManager) {
      }
 
      // Базовые тела (для ~300 энергии)
-    let body = [WORK, CARRY, MOVE]; // По умолчанию
+    let body = [screeps.WORK, screeps.CARRY, screeps.MOVE]; // По умолчанию
     switch (role) {
         case 'harvester':
             // Больше WORK для быстрой добычи
-            if (energyAvailable >= 550) body = [WORK, WORK, WORK, CARRY, MOVE, MOVE]; // 550
-            else if (energyAvailable >= 400) body = [WORK, WORK, CARRY, MOVE, MOVE]; // 400
-            else body = [WORK, WORK, CARRY, MOVE]; // 300
+            if (energyAvailable >= 550) body = [screeps.WORK, screeps.WORK, screeps.WORK, screeps.CARRY, screeps.MOVE, screeps.MOVE]; // 550
+            else if (energyAvailable >= 400) body = [screeps.WORK, screeps.WORK, screeps.CARRY, screeps.MOVE, screeps.MOVE]; // 400
+            else body = [screeps.WORK, screeps.WORK, screeps.CARRY, screeps.MOVE]; // 300
             break;
         case 'builder':
              // Сбалансированный для работы и переноски
-            if (energyAvailable >= 550) body = [WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE]; // 550
-            else if (energyAvailable >= 400) body = [WORK, WORK, CARRY, MOVE, MOVE]; // 400
-             else body = [WORK, CARRY, MOVE, MOVE]; // 250
+            if (energyAvailable >= 550) body = [screeps.WORK, screeps.WORK, screeps.CARRY, screeps.CARRY, screeps.MOVE, screeps.MOVE, screeps.MOVE]; // 550
+            else if (energyAvailable >= 400) body = [screeps.WORK, screeps.WORK, screeps.CARRY, screeps.MOVE, screeps.MOVE]; // 400
+             else body = [screeps.WORK, screeps.CARRY, screeps.MOVE, screeps.MOVE]; // 250
             break;
         case 'carrier':
             // Много CARRY и MOVE
-            if (energyAvailable >= 600) body = [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE]; // 600
-            else if (energyAvailable >= 400) body = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]; // 450
-            else body = [CARRY, CARRY, MOVE, MOVE]; // 300
+            if (energyAvailable >= 600) body = [screeps.CARRY, screeps.CARRY, screeps.CARRY, screeps.CARRY, screeps.MOVE, screeps.MOVE, screeps.MOVE, screeps.MOVE]; // 600
+            else if (energyAvailable >= 400) body = [screeps.CARRY, screeps.CARRY, screeps.CARRY, screeps.MOVE, screeps.MOVE, screeps.MOVE]; // 450
+            else body = [screeps.CARRY, screeps.CARRY, screeps.MOVE, screeps.MOVE]; // 300
             break;
         case 'attacker':
             // ATTACK и MOVE, возможно TOUGH
-            if (energyAvailable >= 390) body = [TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE]; // 380
-            else if (energyAvailable >= 260) body = [ATTACK, ATTACK, MOVE, MOVE]; // 260
-            else body = [ATTACK, MOVE]; // 130
+            if (energyAvailable >= 390) body = [screeps.TOUGH, screeps.TOUGH, screeps.ATTACK, screeps.ATTACK, screeps.MOVE, screeps.MOVE]; // 380
+            else if (energyAvailable >= 260) body = [screeps.ATTACK, screeps.ATTACK, screeps.MOVE, screeps.MOVE]; // 260
+            else body = [screeps.ATTACK, screeps.MOVE]; // 130
             break;
         default:
-             body = [WORK, CARRY, MOVE]; // 200
+             body = [screeps.WORK, screeps.CARRY, screeps.MOVE]; // 200
     }
      console.log(`getBodyForRole: Role=${role}, Energy=${energyAvailable}, Body=[${body}]`);
     return body;
@@ -115,7 +117,7 @@ function manageSpawn(gameStateManager) {
 
          let energyAvailable = 300; // Default
          if (!gameStateManager.isDebugging) {
-            energyAvailable = Game.rooms[spawn.pos.roomName].energyAvailable;
+            energyAvailable = GameAPI.rooms[spawn.pos.roomName].energyAvailable;
          } else if (gameStateManager.state.game.rooms[spawn.pos.roomName]) {
             energyAvailable = gameStateManager.state.game.rooms[spawn.pos.roomName].energyAvailable;
          }
@@ -153,7 +155,8 @@ function gameLoop() {
     
     // 1. Инициализация менеджера состояния (определяет режим работы)
     console.log("Initializing GameStateManager...");
-    const gameStateManager = new GameStateManager();
+    // Используем существующий экземпляр синглтона
+    const gameStateManager = GameStateManager;
     
     console.log("GameStateManager initialized. Debug mode:", gameStateManager.isDebugging);
     if (gameStateManager.isDebugging) {
@@ -163,12 +166,9 @@ function gameLoop() {
     }
 
     // 2. Логирование состояния (только в продакшене)
-    if (!gameStateManager.isDebugging && Game.time % 5 === 0) { // Логируем не каждый тик для экономии CPU
-        try {
-             Logger.logState(Game, Memory); // Используем реальные Game/Memory для лога
-        } catch (e) {
-            console.log(`Error during state logging: ${e}`);
-        }
+    if (!gameStateManager.isDebugging && GameAPI.time % 5 === 0) { // Логируем не каждый тик для экономии CPU
+        console.log(`Tick ${GameAPI.time}:`);
+        Logger.logState(GameAPI, MemoryAPI); // Используем реальные Game/Memory для лога
     }
 
     // 3. Очистка памяти мертвых крипов (используем Memory из gameStateManager)
@@ -176,7 +176,7 @@ function gameLoop() {
     if (!gameStateManager.isDebugging) { // Очищаем только в продакшене
         for (const name in memory.creeps) {
             // Проверяем через Game, так как gameStateManager в проде не хранит список живых крипов
-            if (!Game.creeps[name]) {
+            if (!GameAPI.creeps[name]) {
                 console.log('Clearing non-existing creep memory:', name);
                 delete memory.creeps[name];
             }
@@ -230,13 +230,12 @@ function gameLoop() {
     }
 
      // 6. Вывод информации о CPU (полезно в проде)
-    if (!gameStateManager.isDebugging && Game.time % 10 === 0) {
-        console.log(`CPU Used: ${Game.cpu.getUsed().toFixed(2)} / ${Game.cpu.limit}. Bucket: ${Game.cpu.bucket}`);
+    if (!gameStateManager.isDebugging && GameAPI.time % 10 === 0) {
+        console.log(`CPU Used: ${GameAPI.cpu.getUsed().toFixed(2)} / ${GameAPI.cpu.limit}. Bucket: ${GameAPI.cpu.bucket}`);
     } else if (gameStateManager.isDebugging) {
-         console.log(`DEBUG: End of Tick ${gameStateManager.getTime()}`);
+        console.log(`DEBUG: End of Tick ${gameStateManager.getTime()}`);
     }
-
-}; // --- Конец module.exports.loop ---
+}
 
 // Экспортируем функцию loop по-разному для продакшена и отладки
 if (Config.DEBUG_MODE) {

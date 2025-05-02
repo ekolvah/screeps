@@ -1,4 +1,5 @@
-// const GameStateManager = require('./GameStateManager'); // Не нужен прямой импорт здесь
+const screeps = require('./screeps_api');
+const { Game: GameAPI } = screeps;
 
 class CreepBase {
     /**
@@ -42,10 +43,10 @@ class CreepBase {
     }
 
     handleState() {
-         // Проверяем, жив ли крип (актуально для продакшена и длинных симуляций)
-        if (!this.creep || (Game && !Game.creeps[this.creep.name] && !this.gameState.isDebugging)) {
-             console.log(`Creep ${this.creep?.name || 'unknown'} not found, skipping state handling.`);
-             return;
+        // Проверяем, жив ли крип (актуально для продакшена и длинных симуляций)
+        if (!this.creep || (!GameAPI.creeps[this.creep.name] && !this.gameState.isDebugging)) {
+            console.log(`Creep ${this.creep?.name || 'unknown'} not found, skipping state handling.`);
+            return;
         }
 
         if (!this.memory.state) {

@@ -1,4 +1,6 @@
 const CreepBase = require('./CreepBase');
+const screeps = require('./screeps_api');
+const { Game: GameAPI } = screeps;
 
 class Harvester extends CreepBase {
 
@@ -151,7 +153,7 @@ class Harvester extends CreepBase {
         if (!target) {
              const room = this.gameState.isDebugging
                 ? this.gameState.state.game.rooms[this.creep.pos.roomName]
-                : Game.rooms[this.creep.pos.roomName];
+                : GameAPI.rooms[this.creep.pos.roomName];
 
              if(room && room.storage && room.storage.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                  target = this.gameState.getObjectById(room.storage.id);

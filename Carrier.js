@@ -1,4 +1,6 @@
 const CreepBase = require('./CreepBase');
+const screeps = require('./screeps_api');
+const { Game: GameAPI } = screeps;
 
 class Carrier extends CreepBase {
 
@@ -186,7 +188,7 @@ class Carrier extends CreepBase {
         if (!target) {
              const room = this.gameState.isDebugging
                 ? this.gameState.state.game.rooms[this.creep.pos.roomName]
-                : Game.rooms[this.creep.pos.roomName];
+                : GameAPI.rooms[this.creep.pos.roomName];
 
              if(room && room.storage && room.storage.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                   // В дебаге нужно получить симулированный объект storage
@@ -196,7 +198,7 @@ class Carrier extends CreepBase {
 
         // Можно добавить контроллер для улучшения, если у carrier есть WORK части
         // if (!target && this.creep.body.some(part => part.type === WORK)) {
-        //     const controller = Game.rooms[this.creep.pos.roomName].controller;
+        //     const controller = GameAPI.rooms[this.creep.pos.roomName].controller;
         //     if (controller && controller.my) { // Улучшаем только свой контроллер
         //        target = controller;
         //     }
@@ -224,7 +226,7 @@ class Carrier extends CreepBase {
         if (!target) {
             const room = this.gameState.isDebugging
                 ? this.gameState.state.game.rooms[this.creep.pos.roomName]
-                : Game.rooms[this.creep.pos.roomName];
+                : GameAPI.rooms[this.creep.pos.roomName];
 
              if(room && room.storage && room.storage.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                   target = this.gameState.getObjectById(room.storage.id);

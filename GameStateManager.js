@@ -1,4 +1,5 @@
 const Config = require('./config');
+const constants = require('./screeps_constants');
 
 /**
  * Предоставляет унифицированный доступ к состоянию игры,
@@ -6,6 +7,11 @@ const Config = require('./config');
  */
 class GameStateManager {
     constructor() {
+        if (GameStateManager.instance) {
+            return GameStateManager.instance;
+        }
+        GameStateManager.instance = this;
+        
         this.isDebugging = Config.DEBUG_MODE;
         this.state = null;
 
@@ -15,16 +21,21 @@ class GameStateManager {
                 this._buildSimulatedObjects(); // Создаем симулированные объекты с методами
                 
                 // Создаем симулированный глобальный объект Game
-                global.Game = {
-                    time: this.getTime(),
-                    rooms: this.state.game.rooms,
+                global.GameAPI = {
+                    getObjectById: (id) => this.getObjectById(id),
+                    getTime: () => this.getTime(),
                     creeps: this.getCreeps(),
+                    rooms: this.state.game.rooms,
                     spawns: this.getSpawns(),
-                    cpu: {
-                        getUsed: () => 0,
-                        limit: 20,
-                        bucket: 100
-                    }
+                    structures: this.getStructures(),
+                    constructionSites: this.getConstructionSites(),
+                    flags: this.getFlags(),
+                    resources: this.getResources(),
+                    market: this.getMarket(),
+                    cpu: this.getCpu(),
+                    map: this.getMap(),
+                    shard: this.getShard(),
+                    visual: this.getVisual()
                 };
                 
                 console.log(`GameStateManager: Initialized in DEBUG mode. Tick: ${this.getTime()}`);
@@ -35,9 +46,9 @@ class GameStateManager {
         }
 
         if (!this.isDebugging) {
-            console.log("GameStateManager: Initialized in PRODUCTION mode.");
-            // В продакшене просто используем глобальные объекты (напрямую или через ссылки)
-            // Нет необходимости хранить их копии здесь
+            // В продакшн-режиме используем глобальный объект Game
+            global.GameAPI = Game;
+            console.log(`GameStateManager: Initialized in PRODUCTION mode. Tick: ${Game.time}`);
         }
     }
 
@@ -51,7 +62,7 @@ class GameStateManager {
             // Ищем в симулированных объектах
             return this.simulatedObjects[id] || null;
         } else {
-            return Game.getObjectById(id);
+            return GameAPI.getObjectById(id);
         }
     }
 
@@ -74,7 +85,7 @@ class GameStateManager {
             const spawnData = this.state.game.spawns[name];
             return spawnData ? this.simulatedObjects[spawnData.id] : null;
         } else {
-            return Game.spawns[name];
+            return GameAPI.spawns[name];
         }
     }
 
@@ -83,7 +94,11 @@ class GameStateManager {
      * @returns {number}
      */
     getTime() {
-        return this.isDebugging ? this.state.tick : Game.time;
+        if (this.isDebugging) {
+            return this.state.tick;
+        } else {
+            return GameAPI.time;
+        }
     }
 
     /**
@@ -99,7 +114,7 @@ class GameStateManager {
             }
             return creeps;
         } else {
-            return Game.creeps;
+            return GameAPI.creeps;
         }
     }
 
@@ -116,7 +131,7 @@ class GameStateManager {
             }
             return structures;
         } else {
-            return Game.structures;
+            return GameAPI.structures;
         }
     }
 
@@ -133,10 +148,89 @@ class GameStateManager {
             }
             return spawns;
         } else {
-            return Game.spawns;
+            return GameAPI.spawns;
         }
     }
 
+    getConstructionSites() {
+        if (this.isDebugging) {
+            return this.state.game.constructionSites;
+        } else {
+            return GameAPI.constructionSites;
+        }
+    }
+
+    getFlags() {
+        if (this.isDebugging) {
+            return this.state.game.flags;
+        } else {
+            return GameAPI.flags;
+        }
+    }
+
+    getResources() {
+        if (this.isDebugging) {
+            return this.state.game.resources;
+        } else {
+            return GameAPI.resources;
+        }
+    }
+
+    getMarket() {
+        if (this.isDebugging) {
+            return this.state.game.market;
+        } else {
+            return GameAPI.market;
+        }
+    }
+
+    getCpu() {
+        if (this.isDebugging) {
+            return this.state.game.cpu;
+        } else {
+            return GameAPI.cpu;
+        }
+    }
+
+    getMap() {
+        if (this.isDebugging) {
+            return this.state.game.map;
+        } else {
+            return GameAPI.map;
+        }
+    }
+
+    getShard() {
+        if (this.isDebugging) {
+            return this.state.game.shard;
+        } else {
+            return GameAPI.shard;
+        }
+    }
+
+    getVisual() {
+        if (this.isDebugging) {
+            return this.state.game.visual;
+        } else {
+            return GameAPI.visual;
+        }
+    }
+
+    getPathFinder() {
+        if (this.isDebugging) {
+            return this.state.game.pathFinder;
+        } else {
+            return PathFinder;
+        }
+    }
+
+    getRooms() {
+        if (this.isDebugging) {
+            return this.state.game.rooms;
+        } else {
+            return GameAPI.rooms;
+        }
+    }
 
     // --- Методы поиска (Симуляция) ---
 
@@ -303,9 +397,7 @@ class GameStateManager {
                      return this._isNearTo(creepData.pos, target.pos) ? OK : ERR_NOT_IN_RANGE;
                 },
                 moveTo: (target, opts) => {
-                    // В дебаге просто возвращаем OK, если цель есть
-                    // Можно добавить логику проверки пути, если очень нужно, но усложнит
-                    return target ? OK : ERR_INVALID_TARGET;
+                    return target ? constants.OK : constants.ERR_INVALID_TARGET;
                 },
                 say: (message) => {
                      console.log(`DEBUG: Creep ${creepData.name} says: "${message}"`);
@@ -454,4 +546,5 @@ class GameStateManager {
     }
 }
 
-module.exports = GameStateManager;
+// Экспортируем экземпляр синглтона
+module.exports = new GameStateManager();
