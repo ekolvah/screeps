@@ -306,6 +306,11 @@ class GameStateManager {
                     results.push(...roomData.sources.map(s => this.simulatedObjects[s.id]));
                  }
                  break;
+            case FIND_DROPPED_RESOURCES:
+                if (roomData.droppedResources) {
+                    results.push(...roomData.droppedResources.map(r => this.simulatedObjects[r.id]));
+                }
+                break;
             case FIND_CONSTRUCTION_SITES:
                  if (roomData.constructionSites) {
                      results.push(...roomData.constructionSites.map(cs => this.simulatedObjects[cs.id]));
