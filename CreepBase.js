@@ -2,13 +2,11 @@ class CreepBase {
     /**
      * @param {Creep | object} creep Реальный или симулированный объект крипа.
      * @param {GameStateManager} gameStateManager Менеджер состояния игры.
-     * @param {object} screeps API-обёртка для текущего тика
      */
-    constructor(creep, gameStateManager, screeps) {
-        this.creep = creep; // Может быть реальным или симулированным
-        this.gameState = gameStateManager; // Сохраняем менеджер состояния
-        this.screeps = screeps; // Сохраняем API-обёртку
-        this.memory = this.creep.memory; // Упрощенный доступ к памяти крипа
+    constructor(creep, gameStateManager) {
+        this.creep = creep;
+        this.gameState = gameStateManager;
+        this.memory = this.creep.memory;
     }
 
     // Состояния (остаются без изменений)
@@ -42,9 +40,8 @@ class CreepBase {
     }
 
     handleState() {
-        // Проверяем, жив ли крип (актуально для продакшена и длинных симуляций)
-        const GameAPI = this.screeps.GameAPI;
-        if (!this.creep || (!GameAPI.creeps[this.creep.name] && !this.gameState.isDebugging)) {
+        // Проверяем, жив ли крип
+        if (!this.creep || (!this.gameState.getCreeps()[this.creep.name] && !this.gameState.isDebugging)) {
             console.log(`Creep ${this.creep?.name || 'unknown'} not found, skipping state handling.`);
             return;
         }
@@ -53,15 +50,12 @@ class CreepBase {
             this.memory.state = CreepBase.STATE_IDLE;
         }
 
-        // Проверка на необходимость обновления или смерти (упрощенная)
-        // Эту логику можно вынести или уточнить
+        // Проверка на необходимость обновления или смерти
         if (this.creep.ticksToLive < 50 && this.memory.state !== CreepBase.STATE_DYING && this.memory.state !== CreepBase.STATE_RENEWING) {
              this.setState(CreepBase.STATE_DYING);
         } else if (this.memory.needsRenew && this.creep.ticksToLive < 1400 && this.memory.state !== CreepBase.STATE_RENEWING) {
-            // Допустим, есть флаг needsRenew, требующий обновления
              this.setState(CreepBase.STATE_RENEWING);
         }
-
 
         switch (this.memory.state) {
             case CreepBase.STATE_IDLE:

@@ -184,23 +184,11 @@ class Carrier extends CreepBase {
 
         // Затем хранилище
         if (!target) {
-             const room = this.gameState.isDebugging
-                ? this.gameState.state.game.rooms[this.creep.pos.roomName]
-                : this.screeps.Game.rooms[this.creep.pos.roomName];
-
+             const room = this.gameState.getRooms()[this.creep.pos.roomName];
              if(room && room.storage && room.storage.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                  // В дебаге нужно получить симулированный объект storage
                   target = this.gameState.getObjectById(room.storage.id);
              }
         }
-
-        // Можно добавить контроллер для улучшения, если у carrier есть WORK части
-        // if (!target && this.creep.body.some(part => part.type === WORK)) {
-        //     const controller = GameAPI.rooms[this.creep.pos.roomName].controller;
-        //     if (controller && controller.my) { // Улучшаем только свой контроллер
-        //        target = controller;
-        //     }
-        // }
 
         return target;
     }
@@ -222,10 +210,7 @@ class Carrier extends CreepBase {
 
         // Затем хранилище
         if (!target) {
-            const room = this.gameState.isDebugging
-                ? this.gameState.state.game.rooms[this.creep.pos.roomName]
-                : this.screeps.Game.rooms[this.creep.pos.roomName];
-
+            const room = this.gameState.getRooms()[this.creep.pos.roomName];
              if(room && room.storage && room.storage.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                   target = this.gameState.getObjectById(room.storage.id);
              }

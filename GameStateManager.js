@@ -546,5 +546,5 @@ class GameStateManager {
     }
 }
 
-// Экспортируем сам класс, а не экземпляр
+// Экспортируем сам класс
 module.exports = GameStateManager;
