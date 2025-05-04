@@ -128,7 +128,7 @@ class CreepBase {
     }
 
      handleRenewingState() {
-        const spawn = this.gameState.getSpawn('Spawn1'); // Используем менеджер состояния
+        const spawn = this.gameState.game.spawns['Spawn1'];
         if (spawn) {
             const renewResult = spawn.renewCreep(this.creep);
             if (renewResult === ERR_NOT_IN_RANGE) {
@@ -168,18 +168,7 @@ class CreepBase {
         console.log(`Creep ${this.creep.name} is dying (${this.creep.ticksToLive} TTL). No specific action implemented.`);
         // Можно добавить логику сброса ресурсов в ближайший контейнер/спавн
 
-        // Пытаться обновиться в состоянии DYING обычно не имеет смысла,
-        // но если такая логика нужна, можно раскомментировать:
-        /*
-        const spawn = this.gameState.getSpawn('Spawn1');
-        if (spawn && spawn.pos.isNearTo(this.creep.pos)) {
-             spawn.renewCreep(this.creep); // Попытка обновиться, если рядом
-        } else if (spawn) {
-            this.creep.moveTo(spawn); // Или идем к спавну
-        }
-        */
-         // По умолчанию крип просто доживает свои тики.
-         // Память будет очищена в main.js после его смерти.
+
     }
 
      // Вспомогательный метод для поиска цели в текущей комнате крипа

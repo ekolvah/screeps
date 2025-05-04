@@ -104,15 +104,6 @@ class GameStateManager {
     }
 
     /**
-     * Возвращает объект спавна по имени.
-     * @param {string} name
-     * @returns {StructureSpawn | object | null}
-     */
-    getSpawn(name = 'Spawn1') {
-        return this.game.spawns[name];
-    }
-
-    /**
      * Возвращает текущий тик игры.
      * @returns {number}
      */

@@ -26,13 +26,13 @@ function getBodyForRole(role, gameStateManager) {
      // ВАЖНО: В дебаге это может быть неточным, если состояние комнаты не полное
      let energyAvailable = 300; // Значение по умолчанию
      if (!gameStateManager.isDebugging) {
-         const room = gameStateManager.getRooms()[gameStateManager.getSpawn('Spawn1')?.pos.roomName];
+         const room = gameStateManager.getRooms()[gameStateManager.game.spawns['Spawn1']?.pos.roomName];
          if (room) {
              energyAvailable = room.energyAvailable;
          }
      } else {
          // В дебаге пытаемся получить из сохраненного состояния (если есть)
-         const roomName = gameStateManager.getSpawn('Spawn1')?.pos.roomName;
+         const roomName = gameStateManager.game.spawns['Spawn1']?.pos.roomName;
          if (roomName && gameStateManager.state.game.rooms[roomName]) {
              energyAvailable = gameStateManager.state.game.rooms[roomName].energyAvailable;
          }
@@ -74,7 +74,7 @@ function getBodyForRole(role, gameStateManager) {
 
 // Функция управления спавном крипов
 function manageSpawn(gameStateManager) {
-    const spawn = gameStateManager.getSpawn('Spawn1');
+    const spawn = gameStateManager.game.spawns['Spawn1'];
     if (!spawn || spawn.spawning) {
         return;
     }
