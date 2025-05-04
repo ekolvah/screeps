@@ -76,6 +76,10 @@ class GameStateManager {
                             return this.state.game.visual;
                         case 'time':
                             return this.state.tick;
+                        case 'pathFinder':
+                            return this.state.game.pathFinder;
+                        case 'rooms':
+                            return this.state.game.rooms;
                         case 'getObjectById':
                             return (id) => this.simulatedObjects[id] || null;
                         default:
@@ -182,15 +186,15 @@ class GameStateManager {
     }
 
     getPathFinder() {
-        return this.isDebugging ? this.state.game.pathFinder : PathFinder;
+        return this.game.pathFinder;
     }
 
+    /**
+     * Возвращает все объекты комнат.
+     * @returns {{ [roomName: string]: Room | object }} Словарь комнат.
+     */
     getRooms() {
-        if (this.isDebugging) {
-            return this.state.game.rooms;
-        } else {
-            return Game.rooms;
-        }
+        return this.game.rooms;
     }
 
     // --- Методы поиска (Симуляция) ---
