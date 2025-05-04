@@ -25,8 +25,28 @@ class GameStateManager {
             console.log(`GameStateManager: Initialized in PRODUCTION mode. Tick: ${Game.time}`);
         }
 
-        // Создаем прокси для Game
+        // Создаем прокси для Game и Memory
         this.game = this._createGameProxy();
+        this.memory = this._createMemoryProxy();
+    }
+
+    /**
+     * Создает прокси для объекта Memory, который автоматически делегирует вызовы
+     * либо к реальному Memory, либо к симулированному объекту.
+     * @private
+     */
+    _createMemoryProxy() {
+        const handler = {
+            get: (target, prop) => {
+                if (this.isDebugging) {
+                    return this.state.memory[prop];
+                } else {
+                    return Memory[prop];
+                }
+            }
+        };
+
+        return new Proxy({}, handler);
     }
 
     /**
@@ -93,14 +113,6 @@ class GameStateManager {
         };
 
         return new Proxy({}, handler);
-    }
-
-    /**
-     * Возвращает объект Memory.
-     * @returns {object} Реальный Memory или загруженный объект.
-     */
-    getMemory() {
-        return this.isDebugging ? this.state.memory : Memory;
     }
 
     /**

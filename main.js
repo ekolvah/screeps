@@ -158,11 +158,11 @@ function gameLoop() {
     // 2. Логирование состояния (только в продакшене)
     if (!gameStateManager.isDebugging) { 
         console.log(`Tick ${gameStateManager.getTime()}:`);
-        Logger.logState(gameStateManager, gameStateManager.getMemory());
+        Logger.logState(gameStateManager, gameStateManager.memory);
     }
 
     // 3. Очистка памяти мертвых крипов
-    const memory = gameStateManager.getMemory();
+    const memory = gameStateManager.memory;
     if (!gameStateManager.isDebugging) {
         for (const name in memory.creeps) {
             if (!gameStateManager.getCreeps()[name]) {
