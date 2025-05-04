@@ -64,7 +64,7 @@ class Carrier extends CreepBase {
             this.setState(CreepBase.STATE_IDLE);
             return;
          }
-         const target = this.gameState.getObjectById(targetId);
+         const target = this.gameState.game.getObjectById(targetId);
          if (!target) {
              console.log(`Carrier ${this.creep.name}: Target ${targetId} not found. Going idle.`);
              delete this.memory.target;
@@ -186,7 +186,7 @@ class Carrier extends CreepBase {
         if (!target) {
              const room = this.gameState.getRooms()[this.creep.pos.roomName];
              if(room && room.storage && room.storage.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                  target = this.gameState.getObjectById(room.storage.id);
+                  target = this.gameState.game.getObjectById(room.storage.id);
              }
         }
 
@@ -212,7 +212,7 @@ class Carrier extends CreepBase {
         if (!target) {
             const room = this.gameState.getRooms()[this.creep.pos.roomName];
              if(room && room.storage && room.storage.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                  target = this.gameState.getObjectById(room.storage.id);
+                  target = this.gameState.game.getObjectById(room.storage.id);
              }
         }
 

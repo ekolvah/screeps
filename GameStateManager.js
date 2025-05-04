@@ -96,15 +96,6 @@ class GameStateManager {
     }
 
     /**
-     * Возвращает объект крипа по ID.
-     * @param {string} id
-     * @returns {Creep | object | null} Реальный Creep или симулированный объект крипа.
-     */
-    getObjectById(id) {
-        return this.game.getObjectById(id);
-    }
-
-    /**
      * Возвращает объект Memory.
      * @returns {object} Реальный Memory или загруженный объект.
      */

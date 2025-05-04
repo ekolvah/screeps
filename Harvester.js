@@ -45,7 +45,7 @@ class Harvester extends CreepBase {
         } else {
             // Ищем источник для добычи
             // Если есть назначенный источник, идем к нему
-             let source = this.memory.assignedSource ? this.gameState.getObjectById(this.memory.assignedSource) : null;
+             let source = this.memory.assignedSource ? this.gameState.game.getObjectById(this.memory.assignedSource) : null;
 
              if (!source) { // Если нет назначенного или он исчез
                 source = this.findClosestTarget(FIND_SOURCES_ACTIVE);
@@ -72,7 +72,7 @@ class Harvester extends CreepBase {
             this.setState(CreepBase.STATE_IDLE);
             return;
         }
-        const target = this.gameState.getObjectById(targetId);
+        const target = this.gameState.game.getObjectById(targetId);
         if (!target) {
             console.log(`Harvester ${this.creep.name}: Target ${targetId} not found. Going idle.`);
             delete this.memory.target;
@@ -151,7 +151,7 @@ class Harvester extends CreepBase {
         if (!target) {
              const room = this.gameState.getRooms()[this.creep.pos.roomName];
              if(room && room.storage && room.storage.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                 target = this.gameState.getObjectById(room.storage.id);
+                 target = this.gameState.game.getObjectById(room.storage.id);
              }
         }
          // Можно добавить сброс на землю, если совсем некуда нести

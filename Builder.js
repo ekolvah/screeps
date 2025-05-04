@@ -62,7 +62,7 @@ class Builder extends CreepBase {
             return;
         }
 
-        const target = this.gameState.getObjectById(targetId);
+        const target = this.gameState.game.getObjectById(targetId);
 
         // Проверяем, что это стройплощадка или источник энергии (если мы забирали энергию)
         if (!target) {

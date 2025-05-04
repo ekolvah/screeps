@@ -91,7 +91,7 @@ class CreepBase {
             return;
         }
 
-        const target = this.gameState.getObjectById(targetId);
+        const target = this.gameState.game.getObjectById(targetId);
         if (!target) {
             console.log(`Creep ${this.creep.name}: Target ${targetId} not found. Going idle.`);
             delete this.memory.target;

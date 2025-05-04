@@ -21,7 +21,7 @@ class Attacker extends CreepBase {
             this.setState(CreepBase.STATE_IDLE);
             return;
         }
-        const target = this.gameState.getObjectById(targetId);
+        const target = this.gameState.game.getObjectById(targetId);
         if (!target || target.hits === 0) { // Проверяем, что цель еще существует и жива
              console.log(`Attacker ${this.creep.name}: Target ${targetId} lost or destroyed. Going idle.`);
             delete this.memory.target;
