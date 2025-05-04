@@ -14,7 +14,7 @@ class GameStateManager {
             if (Config.DEBUG_GAME_STATE) {
                 this.state = Config.DEBUG_GAME_STATE;
                 this._buildSimulatedObjects(); // Создаем симулированные объекты с методами
-                console.log(`GameStateManager: Initialized in DEBUG mode. Tick: ${this.getTime()}`);
+                console.log(`GameStateManager: Initialized in DEBUG mode. Tick: ${this.state.tick}`);
             } else {
                 console.error("GameStateManager: DEBUG_MODE is true, but DEBUG_GAME_STATE is not loaded. Falling back to production mode.");
                 this.isDebugging = false; // Откатываемся, если данные не загружены
@@ -24,6 +24,71 @@ class GameStateManager {
         if (!this.isDebugging) {
             console.log(`GameStateManager: Initialized in PRODUCTION mode. Tick: ${Game.time}`);
         }
+
+        // Создаем прокси для Game
+        this.game = this._createGameProxy();
+    }
+
+    /**
+     * Создает прокси для объекта Game, который автоматически делегирует вызовы
+     * либо к реальному Game, либо к симулированным объектам.
+     * @private
+     */
+    _createGameProxy() {
+        const handler = {
+            get: (target, prop) => {
+                if (this.isDebugging) {
+                    // Для режима отладки
+                    switch (prop) {
+                        case 'creeps':
+                            const creeps = {};
+                            for(const name in this.state.game.creeps) {
+                                creeps[name] = this.simulatedObjects[this.state.game.creeps[name].id];
+                            }
+                            return creeps;
+                        case 'spawns':
+                            const spawns = {};
+                            for(const name in this.state.game.spawns) {
+                                spawns[name] = this.simulatedObjects[this.state.game.spawns[name].id];
+                            }
+                            return spawns;
+                        case 'structures':
+                            const structures = {};
+                            for(const id in this.state.game.structures) {
+                                structures[id] = this.simulatedObjects[id];
+                            }
+                            return structures;
+                        case 'constructionSites':
+                            return this.state.game.constructionSites;
+                        case 'flags':
+                            return this.state.game.flags;
+                        case 'resources':
+                            return this.state.game.resources;
+                        case 'market':
+                            return this.state.game.market;
+                        case 'cpu':
+                            return this.state.game.cpu;
+                        case 'map':
+                            return this.state.game.map;
+                        case 'shard':
+                            return this.state.game.shard;
+                        case 'visual':
+                            return this.state.game.visual;
+                        case 'time':
+                            return this.state.tick;
+                        case 'getObjectById':
+                            return (id) => this.simulatedObjects[id] || null;
+                        default:
+                            return this.state.game[prop];
+                    }
+                } else {
+                    // Для продакшена
+                    return Game[prop];
+                }
+            }
+        };
+
+        return new Proxy({}, handler);
     }
 
     /**
@@ -32,12 +97,7 @@ class GameStateManager {
      * @returns {Creep | object | null} Реальный Creep или симулированный объект крипа.
      */
     getObjectById(id) {
-        if (this.isDebugging) {
-            // Ищем в симулированных объектах
-            return this.simulatedObjects[id] || null;
-        } else {
-            return Game.getObjectById(id);
-        }
+        return this.game.getObjectById(id);
     }
 
     /**
@@ -54,13 +114,7 @@ class GameStateManager {
      * @returns {StructureSpawn | object | null}
      */
     getSpawn(name = 'Spawn1') {
-         if (this.isDebugging) {
-            // Ищем спавн по имени в загруженных данных
-            const spawnData = this.state.game.spawns[name];
-            return spawnData ? this.simulatedObjects[spawnData.id] : null;
-        } else {
-            return Game.spawns[name];
-        }
+        return this.game.spawns[name];
     }
 
     /**
@@ -68,11 +122,7 @@ class GameStateManager {
      * @returns {number}
      */
     getTime() {
-        if (this.isDebugging) {
-            return this.state.tick;
-        } else {
-            return Game.time;
-        }
+        return this.game.time;
     }
 
     /**
@@ -80,122 +130,59 @@ class GameStateManager {
      * @returns {{ [creepName: string]: Creep | object }} Словарь крипов.
      */
     getCreeps() {
-        if (this.isDebugging) {
-            // Возвращаем только симулированные объекты крипов
-            const creeps = {};
-            for(const name in this.state.game.creeps) {
-                creeps[name] = this.simulatedObjects[this.state.game.creeps[name].id];
-            }
-            return creeps;
-        } else {
-            return Game.creeps;
-        }
+        return this.game.creeps;
     }
 
     /**
      * Возвращает все объекты структур.
      * @returns {{ [structureId: string]: Structure | object }} Словарь структур.
-      */
-     getStructures() {
-        if (this.isDebugging) {
-            // Возвращаем только симулированные объекты структур
-            const structures = {};
-            for(const id in this.state.game.structures) {
-                structures[id] = this.simulatedObjects[id];
-            }
-            return structures;
-        } else {
-            return Game.structures;
-        }
+     */
+    getStructures() {
+        return this.game.structures;
     }
 
     /**
      * Возвращает все объекты спавнов.
-      * @returns {{ [spawnName: string]: StructureSpawn | object }} Словарь спавнов.
+     * @returns {{ [spawnName: string]: StructureSpawn | object }} Словарь спавнов.
      */
-     getSpawns() {
-        if (this.isDebugging) {
-            // Возвращаем только симулированные объекты спавнов
-             const spawns = {};
-            for(const name in this.state.game.spawns) {
-                spawns[name] = this.simulatedObjects[this.state.game.spawns[name].id];
-            }
-            return spawns;
-        } else {
-            return Game.spawns;
-        }
+    getSpawns() {
+        return this.game.spawns;
     }
 
     getConstructionSites() {
-        if (this.isDebugging) {
-            return this.state.game.constructionSites;
-        } else {
-            return Game.constructionSites;
-        }
+        return this.game.constructionSites;
     }
 
     getFlags() {
-        if (this.isDebugging) {
-            return this.state.game.flags;
-        } else {
-            return Game.flags;
-        }
+        return this.game.flags;
     }
 
     getResources() {
-        if (this.isDebugging) {
-            return this.state.game.resources;
-        } else {
-            return Game.resources;
-        }
+        return this.game.resources;
     }
 
     getMarket() {
-        if (this.isDebugging) {
-            return this.state.game.market;
-        } else {
-            return Game.market;
-        }
+        return this.game.market;
     }
 
     getCpu() {
-        if (this.isDebugging) {
-            return this.state.game.cpu;
-        } else {
-            return Game.cpu;
-        }
+        return this.game.cpu;
     }
 
     getMap() {
-        if (this.isDebugging) {
-            return this.state.game.map;
-        } else {
-            return Game.map;
-        }
+        return this.game.map;
     }
 
     getShard() {
-        if (this.isDebugging) {
-            return this.state.game.shard;
-        } else {
-            return Game.shard;
-        }
+        return this.game.shard;
     }
 
     getVisual() {
-        if (this.isDebugging) {
-            return this.state.game.visual;
-        } else {
-            return Game.visual;
-        }
+        return this.game.visual;
     }
 
     getPathFinder() {
-        if (this.isDebugging) {
-            return this.state.game.pathFinder;
-        } else {
-            return PathFinder;
-        }
+        return this.isDebugging ? this.state.game.pathFinder : PathFinder;
     }
 
     getRooms() {
