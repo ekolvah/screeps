@@ -14,25 +14,6 @@ class GameStateManager {
             if (Config.DEBUG_GAME_STATE) {
                 this.state = Config.DEBUG_GAME_STATE;
                 this._buildSimulatedObjects(); // Создаем симулированные объекты с методами
-                
-                // Создаем симулированный глобальный объект Game
-                global.GameAPI = {
-                    getObjectById: (id) => this.getObjectById(id),
-                    getTime: () => this.getTime(),
-                    creeps: this.getCreeps(),
-                    rooms: this.state.game.rooms,
-                    spawns: this.getSpawns(),
-                    structures: this.getStructures(),
-                    constructionSites: this.getConstructionSites(),
-                    flags: this.getFlags(),
-                    resources: this.getResources(),
-                    market: this.getMarket(),
-                    cpu: this.getCpu(),
-                    map: this.getMap(),
-                    shard: this.getShard(),
-                    visual: this.getVisual()
-                };
-                
                 console.log(`GameStateManager: Initialized in DEBUG mode. Tick: ${this.getTime()}`);
             } else {
                 console.error("GameStateManager: DEBUG_MODE is true, but DEBUG_GAME_STATE is not loaded. Falling back to production mode.");
@@ -41,8 +22,6 @@ class GameStateManager {
         }
 
         if (!this.isDebugging) {
-            // В продакшн-режиме используем глобальный объект Game
-            global.GameAPI = Game;
             console.log(`GameStateManager: Initialized in PRODUCTION mode. Tick: ${Game.time}`);
         }
     }
@@ -57,7 +36,7 @@ class GameStateManager {
             // Ищем в симулированных объектах
             return this.simulatedObjects[id] || null;
         } else {
-            return GameAPI.getObjectById(id);
+            return Game.getObjectById(id);
         }
     }
 
@@ -80,7 +59,7 @@ class GameStateManager {
             const spawnData = this.state.game.spawns[name];
             return spawnData ? this.simulatedObjects[spawnData.id] : null;
         } else {
-            return GameAPI.spawns[name];
+            return Game.spawns[name];
         }
     }
 
@@ -92,7 +71,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.tick;
         } else {
-            return GameAPI.time;
+            return Game.time;
         }
     }
 
@@ -109,7 +88,7 @@ class GameStateManager {
             }
             return creeps;
         } else {
-            return GameAPI.creeps;
+            return Game.creeps;
         }
     }
 
@@ -126,7 +105,7 @@ class GameStateManager {
             }
             return structures;
         } else {
-            return GameAPI.structures;
+            return Game.structures;
         }
     }
 
@@ -143,7 +122,7 @@ class GameStateManager {
             }
             return spawns;
         } else {
-            return GameAPI.spawns;
+            return Game.spawns;
         }
     }
 
@@ -151,7 +130,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.constructionSites;
         } else {
-            return GameAPI.constructionSites;
+            return Game.constructionSites;
         }
     }
 
@@ -159,7 +138,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.flags;
         } else {
-            return GameAPI.flags;
+            return Game.flags;
         }
     }
 
@@ -167,7 +146,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.resources;
         } else {
-            return GameAPI.resources;
+            return Game.resources;
         }
     }
 
@@ -175,7 +154,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.market;
         } else {
-            return GameAPI.market;
+            return Game.market;
         }
     }
 
@@ -183,7 +162,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.cpu;
         } else {
-            return GameAPI.cpu;
+            return Game.cpu;
         }
     }
 
@@ -191,7 +170,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.map;
         } else {
-            return GameAPI.map;
+            return Game.map;
         }
     }
 
@@ -199,7 +178,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.shard;
         } else {
-            return GameAPI.shard;
+            return Game.shard;
         }
     }
 
@@ -207,7 +186,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.visual;
         } else {
-            return GameAPI.visual;
+            return Game.visual;
         }
     }
 
@@ -223,7 +202,7 @@ class GameStateManager {
         if (this.isDebugging) {
             return this.state.game.rooms;
         } else {
-            return GameAPI.rooms;
+            return Game.rooms;
         }
     }
 
@@ -239,13 +218,8 @@ class GameStateManager {
     findClosestByRange(originPos, findType, opts) {
         if (!this.isDebugging) {
             // В продакшене вызываем реальный метод комнаты
-            // Важно: Нужен доступ к объекту комнаты. Предположим, он доступен или получается из originPos
             const room = Game.rooms[originPos.roomName];
             return room ? room.findClosestByRange(findType, opts) : null;
-             // ИЛИ если метод вызывается от creep.pos:
-             // const creep = Game.getObjectById(originPos._simulatedCreepId); // Нужен способ связать pos с крипом
-             // return creep ? creep.pos.findClosestByRange(findType, opts) : null;
-             // Для простоты, пока оставим вызов через Game.rooms
         }
 
         const candidates = this._findSimulated(originPos.roomName, findType, opts);
@@ -266,7 +240,7 @@ class GameStateManager {
         return closest;
     }
 
-     /**
+    /**
      * Симулирует find для отладки.
      * @param {string} roomName Имя комнаты для поиска.
      * @param {number} findType FIND_* константа.
@@ -274,7 +248,7 @@ class GameStateManager {
      * @returns {Array<object>} Массив симулированных объектов.
      */
     find(roomName, findType, opts) {
-         if (!this.isDebugging) {
+        if (!this.isDebugging) {
             const room = Game.rooms[roomName];
             return room ? room.find(findType, opts) : [];
         }
@@ -302,37 +276,36 @@ class GameStateManager {
                 break;
             case FIND_SOURCES_ACTIVE: // Приближение: считаем все источники активными
             case FIND_SOURCES:
-                 if (roomData.sources) {
+                if (roomData.sources) {
                     results.push(...roomData.sources.map(s => this.simulatedObjects[s.id]));
-                 }
-                 break;
+                }
+                break;
             case FIND_DROPPED_RESOURCES:
                 if (roomData.droppedResources) {
                     results.push(...roomData.droppedResources.map(r => this.simulatedObjects[r.id]));
                 }
                 break;
             case FIND_CONSTRUCTION_SITES:
-                 if (roomData.constructionSites) {
-                     results.push(...roomData.constructionSites.map(cs => this.simulatedObjects[cs.id]));
-                 }
+                if (roomData.constructionSites) {
+                    results.push(...roomData.constructionSites.map(cs => this.simulatedObjects[cs.id]));
+                }
                 break;
             case FIND_STRUCTURES:
-                 for (const id in this.state.game.structures) {
-                     const structure = this.simulatedObjects[id];
-                     if (structure && structure.pos.roomName === roomName) {
-                         results.push(structure);
-                     }
-                 }
+                for (const id in this.state.game.structures) {
+                    const structure = this.simulatedObjects[id];
+                    if (structure && structure.pos.roomName === roomName) {
+                        results.push(structure);
+                    }
+                }
                 break;
-             case FIND_MY_SPAWNS: // Добавляем поиск спавнов
-                 for (const name in this.state.game.spawns) {
-                     const spawn = this.simulatedObjects[this.state.game.spawns[name].id];
-                     if (spawn && spawn.pos.roomName === roomName && spawn.my) {
-                         results.push(spawn);
-                     }
-                 }
-                 break;
-            // Добавить другие FIND_* константы по мере необходимости
+            case FIND_MY_SPAWNS: // Добавляем поиск спавнов
+                for (const name in this.state.game.spawns) {
+                    const spawn = this.simulatedObjects[this.state.game.spawns[name].id];
+                    if (spawn && spawn.pos.roomName === roomName && spawn.my) {
+                        results.push(spawn);
+                    }
+                }
+                break;
             default:
                 console.log(`GameStateManager._findSimulated: Unsupported findType: ${findType}`);
                 return [];
@@ -342,21 +315,16 @@ class GameStateManager {
         return filterFunc ? results.filter(filterFunc) : results;
     }
 
-
     /**
-     * Рассчитывает расстояние между двумя позициями (простая эвристика).
+     * Вычисляет расстояние между двумя позициями.
      * @private
      */
     _getRange(pos1, pos2) {
-        if (pos1.roomName !== pos2.roomName) {
-            return Infinity; // В разных комнатах
-        }
-        // Используем Chebyshev distance (расстояние по сетке)
         return Math.max(Math.abs(pos1.x - pos2.x), Math.abs(pos1.y - pos2.y));
     }
 
-     /**
-     * Рассчитывает, находятся ли позиции рядом.
+    /**
+     * Проверяет, находятся ли две позиции рядом (расстояние <= 1).
      * @private
      */
     _isNearTo(pos1, pos2) {
@@ -389,23 +357,22 @@ class GameStateManager {
                      return this._isNearTo(creepData.pos, target.pos) ? OK : ERR_NOT_IN_RANGE;
                 },
                 harvest: (target) => {
-                     if (!target) return ERR_INVALID_TARGET;
-                     return this._isNearTo(creepData.pos, target.pos) ? OK : ERR_NOT_IN_RANGE;
+                    if (!target) return ERR_INVALID_TARGET;
+                    return this._isNearTo(creepData.pos, target.pos) ? OK : ERR_NOT_IN_RANGE;
                 },
                 transfer: (target, resourceType, amount) => {
-                     if (!target || !resourceType) return ERR_INVALID_TARGET;
-                     return this._isNearTo(creepData.pos, target.pos) ? OK : ERR_NOT_IN_RANGE;
+                    if (!target || !resourceType) return ERR_INVALID_TARGET;
+                    return this._isNearTo(creepData.pos, target.pos) ? OK : ERR_NOT_IN_RANGE;
                 },
                 moveTo: (target, opts) => {
                     return target ? constants.OK : constants.ERR_INVALID_TARGET;
                 },
                 say: (message) => {
-                     console.log(`DEBUG: Creep ${creepData.name} says: "${message}"`);
+                    console.log(`DEBUG: Creep ${creepData.name} says: "${message}"`);
                 },
                 // --- Симулированные Свойства Creep ---
-                 pos: { // Добавляем симулированный объект pos
+                pos: { // Добавляем симулированный объект pos
                     ...creepData.pos, // Копируем x, y, roomName
-                    // _simulatedCreepId: creepData.id, // Сохраняем ID для возможной связи
                     isNearTo: (targetPosOrObject) => {
                         const targetPos = targetPosOrObject.pos || targetPosOrObject;
                         return this._isNearTo(creepData.pos, targetPos);
@@ -414,103 +381,102 @@ class GameStateManager {
                         // Делегируем основному методу менеджера
                         return this.findClosestByRange(creepData.pos, findType, opts);
                     },
-                    // Можно добавить findInRange, если используется
                 },
                 store: this._simulateStore(creepData.store), // Симулируем объект store
             };
         }
 
         // Обработка структур (включая спавны, т.к. они наследуются от Structure)
-         for (const id in this.state.game.structures) {
-             const structData = this.state.game.structures[id];
-             this.simulatedObjects[id] = {
+        for (const id in this.state.game.structures) {
+            const structData = this.state.game.structures[id];
+            this.simulatedObjects[id] = {
                 ...structData,
                 // --- Симулированные Свойства/Методы Structure ---
-                 pos: { ...structData.pos }, // Простой объект pos
-                 store: this._simulateStore(structData.store),
-             };
-         }
+                pos: { ...structData.pos }, // Простой объект pos
+                store: this._simulateStore(structData.store),
+            };
+        }
 
         // Обработка спавнов (добавляем специфичные методы)
         for (const name in this.state.game.spawns) {
-             const spawnData = this.state.game.spawns[name];
-             const spawnObject = this.simulatedObjects[spawnData.id]; // Получаем уже созданный объект структуры
-             if (spawnObject) {
-                 Object.assign(spawnObject, {
-                     // --- Симулированные Методы Spawn ---
-                     spawnCreep: (body, name, opts) => {
-                         console.log(`DEBUG: Attempting to spawn ${name} with body [${body}]`);
-                         // Проверяем энергию (упрощенно)
-                         const bodyCost = body.reduce((cost, part) => cost + (BODYPART_COST[part] || 0), 0);
-                         if (!spawnObject.spawning && spawnObject.store[RESOURCE_ENERGY] >= bodyCost) {
+            const spawnData = this.state.game.spawns[name];
+            const spawnObject = this.simulatedObjects[spawnData.id]; // Получаем уже созданный объект структуры
+            if (spawnObject) {
+                Object.assign(spawnObject, {
+                    // --- Симулированные Методы Spawn ---
+                    spawnCreep: (body, name, opts) => {
+                        console.log(`DEBUG: Attempting to spawn ${name} with body [${body}]`);
+                        // Проверяем энергию (упрощенно)
+                        const bodyCost = body.reduce((cost, part) => cost + (BODYPART_COST[part] || 0), 0);
+                        if (!spawnObject.spawning && spawnObject.store[RESOURCE_ENERGY] >= bodyCost) {
                             console.log(`DEBUG: Spawn ${spawnData.name}: OK (enough energy)`);
-                             return OK; // В дебаге просто говорим ОК, если хватает энергии и не занят
-                         } else if (spawnObject.spawning) {
+                            return OK; // В дебаге просто говорим ОК, если хватает энергии и не занят
+                        } else if (spawnObject.spawning) {
                             console.log(`DEBUG: Spawn ${spawnData.name}: BUSY`);
-                             return ERR_BUSY;
-                         } else {
-                             console.log(`DEBUG: Spawn ${spawnData.name}: NOT_ENOUGH_ENERGY (cost: ${bodyCost}, available: ${spawnObject.store[RESOURCE_ENERGY]})`);
-                             return ERR_NOT_ENOUGH_ENERGY;
-                         }
-                     },
-                     renewCreep: (creep) => {
+                            return ERR_BUSY;
+                        } else {
+                            console.log(`DEBUG: Spawn ${spawnData.name}: NOT_ENOUGH_ENERGY (cost: ${bodyCost}, available: ${spawnObject.store[RESOURCE_ENERGY]})`);
+                            return ERR_NOT_ENOUGH_ENERGY;
+                        }
+                    },
+                    renewCreep: (creep) => {
                         const targetCreep = this.simulatedObjects[creep.id];
                         if (!targetCreep) return ERR_INVALID_TARGET;
                         return this._isNearTo(spawnData.pos, targetCreep.pos) ? OK : ERR_NOT_IN_RANGE;
-                     },
-                 });
-             }
-         }
+                    },
+                });
+            }
+        }
 
-         // Обработка источников
-         for (const roomName in this.state.game.rooms) {
+        // Обработка источников
+        for (const roomName in this.state.game.rooms) {
             const roomData = this.state.game.rooms[roomName];
-             if(roomData.sources) {
-                 roomData.sources.forEach(sourceData => {
-                     this.simulatedObjects[sourceData.id] = {
+            if(roomData.sources) {
+                roomData.sources.forEach(sourceData => {
+                    this.simulatedObjects[sourceData.id] = {
                         ...sourceData,
                         pos: { ...sourceData.pos }
-                     };
-                 });
-             }
-             // Обработка стройплощадок
-             if(roomData.constructionSites) {
-                 roomData.constructionSites.forEach(csData => {
-                     this.simulatedObjects[csData.id] = {
-                         ...csData,
-                         pos: { ...csData.pos }
-                     };
-                 });
-             }
+                    };
+                });
+            }
+            // Обработка стройплощадок
+            if(roomData.constructionSites) {
+                roomData.constructionSites.forEach(csData => {
+                    this.simulatedObjects[csData.id] = {
+                        ...csData,
+                        pos: { ...csData.pos }
+                    };
+                });
+            }
             // Обработка вражеских крипов
-             if(roomData.hostileCreeps) {
-                 roomData.hostileCreeps.forEach(hcData => {
-                     this.simulatedObjects[hcData.id] = {
-                         ...hcData,
-                         pos: { ...hcData.pos }
-                     };
-                 });
-             }
-             // Обработка контроллера
-             if (roomData.controller) {
-                 const controllerData = roomData.controller;
-                  this.simulatedObjects[controllerData.id] = {
-                         ...controllerData,
-                         pos: { ...controllerData.pos }
-                     };
-             }
-              // Обработка хранилища
-             if (roomData.storage) {
-                 const storageData = roomData.storage;
-                 this.simulatedObjects[storageData.id] = {
-                         ...storageData,
-                         pos: { ...storageData.pos },
-                         store: this._simulateStore(storageData.store)
-                     };
-             }
-         }
+            if(roomData.hostileCreeps) {
+                roomData.hostileCreeps.forEach(hcData => {
+                    this.simulatedObjects[hcData.id] = {
+                        ...hcData,
+                        pos: { ...hcData.pos }
+                    };
+                });
+            }
+            // Обработка контроллера
+            if (roomData.controller) {
+                const controllerData = roomData.controller;
+                this.simulatedObjects[controllerData.id] = {
+                    ...controllerData,
+                    pos: { ...controllerData.pos }
+                };
+            }
+            // Обработка хранилища
+            if (roomData.storage) {
+                const storageData = roomData.storage;
+                this.simulatedObjects[storageData.id] = {
+                    ...storageData,
+                    pos: { ...storageData.pos },
+                    store: this._simulateStore(storageData.store)
+                };
+            }
+        }
 
-         console.log(`GameStateManager: Built ${Object.keys(this.simulatedObjects).length} simulated objects.`);
+        console.log(`GameStateManager: Built ${Object.keys(this.simulatedObjects).length} simulated objects.`);
     }
 
     /**
@@ -528,7 +494,6 @@ class GameStateManager {
             // Это неточно, но лучше чем ничего без данных о capacity в логе.
             // Правильнее было бы добавить 'storeCapacity' в лог для структур/крипов.
              const capacity = storeData.energyCapacity || (storeData[resource] !== undefined ? (storeData[resource] + (storeData.freeCapacity || 0)) : 0); // Очень грубое приближение
-             //console.log(`DEBUG: getCapacity(${resource}) called. Data: ${JSON.stringify(storeData)}, Calculated capacity: ${capacity}`);
             return capacity > 0 ? capacity : 2000; // Заглушка, если не удалось определить
         };
 
