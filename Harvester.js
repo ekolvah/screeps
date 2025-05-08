@@ -40,6 +40,7 @@ class Harvester extends CreepBase {
                 this.setState(CreepBase.STATE_MOVING);
                 this.handleMovingState();
             } else {
+                // TODO почему то крипы зависли. 
                 this.creep.say?.('❓ No deposit');
                 // Некуда нести? Можно сбросить рядом с источником или ждать
                 // Если есть контейнер рядом с источником, можно построить его

@@ -12,9 +12,7 @@ class Logger {
         const state = {
             timestamp: new Date().toISOString(),
             tick: gameInstance.time,
-            // Используем JSON.parse(JSON.stringify(...)) для глубокого копирования
-            // и избежания проблем с циклическими ссылками или сложными объектами
-            memory: JSON.parse(JSON.stringify(memoryInstance)),
+            memory: this._safeCloneMemory(memoryInstance),
             game: {
                 time: gameInstance.time,
                 cpu: gameInstance.cpu, // Добавим информацию о CPU
@@ -127,6 +125,35 @@ class Logger {
 
         // Выводим одной строкой JSON с префиксом
         console.log(`DEBUG_STATE_JSON: ${JSON.stringify(state)}`);
+    }
+
+    /**
+     * Безопасно клонирует объект памяти.
+     * @private
+     * @param {object} memory - Объект памяти для клонирования
+     * @returns {object} Клонированный объект памяти
+     */
+    static _safeCloneMemory(memory) {
+        if (!memory) return {};
+        
+        const result = {};
+        
+        // Копируем creeps
+        if (memory.creeps) {
+            result.creeps = {};
+            for (const name in memory.creeps) {
+                result.creeps[name] = { ...memory.creeps[name] };
+            }
+        }
+
+        // Копируем остальные поля памяти
+        for (const key in memory) {
+            if (key !== 'creeps' && typeof memory[key] !== 'function') {
+                result[key] = memory[key];
+            }
+        }
+
+        return result;
     }
 }
 

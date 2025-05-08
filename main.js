@@ -158,7 +158,7 @@ function gameLoop() {
     // 2. Логирование состояния (только в продакшене)
     if (!gameStateManager.isDebugging) { 
         console.log(`Tick ${gameStateManager.game.time}:`);
-        Logger.logState(gameStateManager, gameStateManager.memory);
+        Logger.logState(gameStateManager.game, gameStateManager.memory);
     }
 
     // 3. Очистка памяти мертвых крипов

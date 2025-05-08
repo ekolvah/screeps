@@ -213,6 +213,7 @@ class GameStateManager {
         }
 
         // Применяем фильтр, если он есть
+        // TODO в найденных обьектах нет типа и поэтому фильтрует их все
         return filterFunc ? results.filter(filterFunc) : results;
     }
 

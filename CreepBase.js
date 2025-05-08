@@ -29,13 +29,7 @@ class CreepBase {
         /** Крип перемещается к цели */
         STATE_MOVING: 'moving',
         /** Крип выполняет основное действие (сбор, строительство и т.д.) */
-        STATE_WORKING: 'working',
-        /** Крип возвращается на базу */
-        STATE_RETURNING: 'returning',
-        /** Крип атакует цель */
-        STATE_ATTACKING: 'attacking',
-        /** Крип защищает позицию */
-        STATE_DEFENDING: 'defending'
+        STATE_WORKING: 'working'
     };
 
     /**
@@ -57,13 +51,6 @@ class CreepBase {
             this.memory.state = CreepBase.STATES.STATE_IDLE;
         }
 
-        // Проверка на необходимость обновления или смерти
-        if (this.creep.ticksToLive < 50 && this.memory.state !== CreepBase.STATES.STATE_DYING && this.memory.state !== CreepBase.STATES.STATE_RENEWING) {
-             this.setState(CreepBase.STATES.STATE_DYING);
-        } else if (this.memory.needsRenew && this.creep.ticksToLive < 1400 && this.memory.state !== CreepBase.STATES.STATE_RENEWING) {
-             this.setState(CreepBase.STATES.STATE_RENEWING);
-        }
-
         switch (this.memory.state) {
             case CreepBase.STATES.STATE_IDLE:
                 this.handleIdleState();
@@ -73,12 +60,6 @@ class CreepBase {
                 break;
             case CreepBase.STATES.STATE_WORKING:
                 this.handleWorkingState();
-                break;
-            case CreepBase.STATES.STATE_RENEWING:
-                this.handleRenewingState();
-                break;
-            case CreepBase.STATES.STATE_DYING:
-                this.handleDyingState();
                 break;
             default:
                 this.setState(CreepBase.STATES.STATE_IDLE);
@@ -162,12 +143,6 @@ class CreepBase {
                 break;
             case CreepBase.STATES.STATE_WORKING:
                 this.creep.say?.('⚡ working');
-                break;
-            case CreepBase.STATES.STATE_RENEWING:
-                this.creep.say?.('🔄 renewing');
-                break;
-            case CreepBase.STATES.STATE_DYING:
-                this.creep.say?.('💀 dying');
                 break;
         }
     }
