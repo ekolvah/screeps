@@ -24,12 +24,8 @@ classDiagram
     class CreepBase {
         +static STATES
         +handleState()
-        -_handleIdleState()
-        -_handleMovingState()
-        -_handleWorkingState()
-        -_handleReturningState()
-        -_handleAttackingState()
-        -_handleDefendingState()
+        +handleIdleState()
+        +handleMovingState()
         +setState()
         +getState()
         +findClosestTarget()
@@ -135,15 +131,13 @@ CreepBase
 
 **Жизненный цикл:**
 - handleState
-- _handleIdleState
-- _handleMovingState
-- _handleWorkingState
-- _handleReturningState
-- _handleAttackingState
-- _handleDefendingState
+- handleIdleState
+- handleMovingState
 
 **Состояния:**
 - 
+- Idle
+- Moving
 
 **Потоки данных:**
 - Передает данные от CreepBase к this.memory
@@ -166,27 +160,14 @@ CreepBase
 Вызывает соответствующий обработчик в зависимости от текущего состояния.
 Реализует паттерн State для управления поведением.
   **Использует:** `this.gameState.game`, `this.gameState`, `this.creep`, `console`, `this.memory`, `CreepBase.STATES`, `CreepBase`
-- `private _handleIdleState(): void`
+- `public handleIdleState(): void`
   Определяет следующее действие крипа в состоянии ожидания.
 Может переключить крипа в состояние движения или работы.
   **Использует:** `console`, `this.creep`, `this.memory`
-- `private _handleMovingState(): void`
+- `public handleMovingState(): void`
   Управляет движением крипа к целевой позиции.
 Переключает состояние на работу при достижении цели.
   **Использует:** `this.memory`, `CreepBase.STATES`, `CreepBase`, `this.gameState.game`, `this.gameState`, `console`, `this.creep`, `this.creep.pos`, `target`
-- `private _handleWorkingState(): void`
-  Выполняет основное действие крипа (сбор ресурсов, строительство и т.д.).
-Переключает состояние на возврат при необходимости.
-  **Использует:** `console`, `this.creep`, `this.memory`
-- `private _handleReturningState(): void`
-  Управляет возвратом крипа на базу.
-Переключает состояние на ожидание при достижении базы.
-- `private _handleAttackingState(): void`
-  Управляет атакой крипа на цель.
-Переключает состояние на ожидание при уничтожении цели.
-- `private _handleDefendingState(): void`
-  Управляет защитой крипом указанной позиции.
-Переключает состояние на атаку при появлении врагов.
 - `public setState(): void`
   Изменяет состояние крипа и обновляет его память.
 Используется для переключения между различными режимами работы.
