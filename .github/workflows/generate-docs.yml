@@ -26,15 +26,28 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm install
+      run: |
+        echo "Installing dependencies..."
+        npm install
+        if [ $? -ne 0 ]; then
+          echo "Failed to install dependencies"
+          exit 1
+        fi
     
     - name: Generate documentation
-      run: npm run generate
-    
-    - name: Check for changes
-      id: git-check
       run: |
+        echo "Generating documentation..."
+        npm run generate
+        if [ $? -ne 0 ]; then
+          echo "Failed to generate documentation"
+          exit 1
+        fi
+    
+    - name: Commit and push documentation
+      run: |
+        echo "Committing documentation changes..."
         git config --global user.name 'GitHub Actions'
         git config --global user.email 'actions@github.com'
         git add architecture.md
-        git diff --quiet && git diff --staged --quiet || (git commit -m "docs: update architecture documentation [skip ci]" && git push) 
+        git commit -m "docs: update architecture documentation [skip ci]"
+        git push 
