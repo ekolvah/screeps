@@ -20,6 +20,7 @@ classDiagram
         -_isNearTo()
         -_buildSimulatedObjects()
         -_simulateStore()
+        +findClosestByRange()
     }
     class CreepBase {
         +static STATES
@@ -93,7 +94,7 @@ GameStateManager
 - Доступ к крипам, спавнам, структурам
 - Поиск объектов в комнатах
 - Работа с ресурсами и строительством
-  **Использует:** `this.state.game`, `this.state`, `this.state.game.creeps[name]`, `this.state.game.spawns[name]`, `originPos`, `candidates`, `candidate`
+  **Использует:** `this.state.game`, `this.state`, `this.state.game.creeps[name]`, `this.state.game.spawns[name]`
 - `private _findSimulated(): void`
   Имитирует работу Game.find() для симулированных объектов.
 Поддерживает поиск:
@@ -118,6 +119,8 @@ GameStateManager
   Создает объект с методами для работы с хранилищем
 (transfer, withdraw и т.д.) на основе данных из JSON.
   **Использует:** `simulatedStore`, `storeData`
+- `public findClosestByRange(): void`
+  **Использует:** `originPos`, `candidates`, `candidate`, `Game`
 
 ### CreepBase
 
@@ -145,7 +148,6 @@ CreepBase
 - Передает данные от CreepBase к CreepBase
 - Передает данные от CreepBase к this.creep
 - Передает данные от CreepBase к this.memory
-- Передает данные от CreepBase к this.gameState.game
 - Передает данные от CreepBase к this.gameState
 - Передает данные от CreepBase к this.creep
 
@@ -176,7 +178,7 @@ CreepBase
   Возвращает текущее состояние крипа из его памяти.
   **Использует:** `this.memory`
 - `public findClosestTarget(): void`
-  **Использует:** `this.gameState.game`, `this.gameState`, `this.creep`
+  **Использует:** `this.gameState`, `this.creep`
 
 ### Harvester
 
