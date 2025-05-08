@@ -4,8 +4,19 @@ const constants = require('./screeps_constants');
 /**
  * Предоставляет унифицированный доступ к состоянию игры,
  * работая либо с реальными объектами Game/Memory, либо с загруженными из JSON.
+ * 
+ * @class GameStateManager
+ * @description Реализует паттерн Proxy для абстракции доступа к игровым объектам.
+ * Поддерживает два режима работы:
+ * 1. Production - работа с реальными объектами Game/Memory
+ * 2. Debug - работа с симулированными объектами из JSON
  */
 class GameStateManager {
+    /**
+     * @constructor
+     * @description Инициализирует менеджер состояния игры.
+     * Создает прокси для Game и Memory в зависимости от режима работы.
+     */
     constructor() {
         this.isDebugging = Config.DEBUG_MODE;
         this.state = null;
@@ -33,7 +44,12 @@ class GameStateManager {
     /**
      * Создает прокси для объекта Memory, который автоматически делегирует вызовы
      * либо к реальному Memory, либо к симулированному объекту.
+     * 
      * @private
+     * @returns {Proxy} Прокси-объект для доступа к Memory
+     * @description Реализует паттерн Proxy для абстракции доступа к памяти игры.
+     * В режиме отладки использует данные из state.memory,
+     * в production режиме - напрямую обращается к глобальному объекту Memory.
      */
     _createMemoryProxy() {
         const handler = {
@@ -52,7 +68,14 @@ class GameStateManager {
     /**
      * Создает прокси для объекта Game, который автоматически делегирует вызовы
      * либо к реальному Game, либо к симулированным объектам.
+     * 
      * @private
+     * @returns {Proxy} Прокси-объект для доступа к Game
+     * @description Реализует паттерн Proxy для абстракции доступа к игровым объектам.
+     * Поддерживает все основные операции с игровыми объектами:
+     * - Доступ к крипам, спавнам, структурам
+     * - Поиск объектов в комнатах
+     * - Работа с ресурсами и строительством
      */
     _createGameProxy() {
         const handler = {
@@ -140,11 +163,23 @@ class GameStateManager {
         return new Proxy({}, handler);
     }
 
-    // --- Методы поиска (Симуляция) ---
-
     /**
      * Находит симулированные объекты по типу и фильтру в указанной комнате.
+     * 
      * @private
+     * @param {string} roomName - Имя комнаты для поиска
+     * @param {number} findType - Тип искомых объектов (FIND_* константы)
+     * @param {Object} [opts] - Дополнительные опции поиска
+     * @param {Function} [opts.filter] - Функция фильтрации результатов
+     * @returns {Array} Массив найденных объектов
+     * @description Имитирует работу Game.find() для симулированных объектов.
+     * Поддерживает поиск:
+     * - Враждебных крипов
+     * - Источников энергии
+     * - Выпавших ресурсов
+     * - Строящихся объектов
+     * - Структур
+     * - Спавнов
      */
     _findSimulated(roomName, findType, opts) {
         const results = [];
@@ -202,24 +237,37 @@ class GameStateManager {
 
     /**
      * Вычисляет расстояние между двумя позициями.
+     * 
      * @private
+     * @param {RoomPosition} pos1 - Первая позиция
+     * @param {RoomPosition} pos2 - Вторая позиция
+     * @returns {number} Расстояние между позициями
      */
     _getRange(pos1, pos2) {
         return Math.max(Math.abs(pos1.x - pos2.x), Math.abs(pos1.y - pos2.y));
     }
 
     /**
-     * Проверяет, находятся ли две позиции рядом (расстояние <= 1).
+     * Проверяет, находится ли одна позиция рядом с другой.
+     * 
      * @private
+     * @param {RoomPosition} pos1 - Первая позиция
+     * @param {RoomPosition} pos2 - Вторая позиция
+     * @returns {boolean} true если позиции рядом
      */
     _isNearTo(pos1, pos2) {
         return this._getRange(pos1, pos2) <= 1;
     }
 
     /**
-     * Создает "объекты-заглушки" для всех сущностей из загруженного состояния,
-     * добавляя им необходимые методы для симуляции API Screeps.
+     * Создает симулированные объекты с методами на основе данных из JSON.
+     * 
      * @private
+     * @description Создает полноценные объекты с методами для симуляции
+     * на основе сырых данных из JSON. Поддерживает:
+     * - Крипов с методами move, say, harvest и т.д.
+     * - Структуры с методами transfer, store и т.д.
+     * - Ресурсы и другие игровые объекты
      */
     _buildSimulatedObjects() {
         this.simulatedObjects = {};
@@ -365,8 +413,13 @@ class GameStateManager {
     }
 
     /**
-     * Создает симулированный объект store с методами getCapacity, getUsedCapacity, getFreeCapacity.
+     * Создает симулированный объект хранилища.
+     * 
      * @private
+     * @param {Object} storeData - Данные хранилища
+     * @returns {Object} Симулированный объект хранилища
+     * @description Создает объект с методами для работы с хранилищем
+     * (transfer, withdraw и т.д.) на основе данных из JSON.
      */
     _simulateStore(storeData) {
         if (!storeData) return undefined; // Если данных store нет

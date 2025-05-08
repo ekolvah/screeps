@@ -1,111 +1,10 @@
 # Архитектура проекта Screeps
 
-## Общая структура
+## Общее описание
 
-```mermaid
-graph TD
-    A[main.js] --> B[GameStateManager]
-    A --> C[Logger]
-    A --> D[Config]
-    A --> E[ScreepsAPI]
-    B --> F[CreepBase]
-    E --> B
-    E --> G[screeps_constants.js]
-    F --> H[Harvester]
-    F --> I[Builder]
-    F --> J[Carrier]
-    F --> K[Attacker]
-```
+Проект представляет собой AI для игры Screeps, реализующий автоматическое управление колонией.
 
-Проект построен на основе объектно-ориентированного подхода с использованием классов для управления различными типами крипов и состояниями игры.
-
-## Основные компоненты
-
-### 1. Менеджер состояния игры (GameStateManager.js)
-```mermaid
-classDiagram
-    class GameStateManager {
-        +getObjectById(id)
-        +getMemory()
-        +getSpawn(name)
-        +getTime()
-        +getCreeps()
-        +getStructures()
-        +getSpawns()
-        +findClosestByRange(originPos, findType, opts)
-        +find(roomName, findType, opts)
-        -_buildSimulatedObjects()
-        -_simulateStore(storeData)
-    }
-```
-- Управляет состоянием игры в режиме отладки и продакшена
-- Предоставляет унифицированный интерфейс для работы с игровыми объектами
-- Реализует симуляцию игровых методов для отладки
-- Управляет памятью игры
-
-### 2. ScreepsAPI (screeps_api.js)
-```mermaid
-classDiagram
-    class ScreepsAPI {
-        +GameAPI
-        +MemoryAPI
-        +constants
-    }
-    
-    class GameAPI {
-        +getObjectById(id)
-        +getTime()
-        +get creeps()
-        +get rooms()
-        +get spawns()
-        +get structures()
-    }
-    
-    ScreepsAPI --> GameAPI
-    ScreepsAPI --> MemoryAPI
-    ScreepsAPI --> constants
-```
-
-**Назначение ScreepsAPI:**
-1. **Абстракция и инкапсуляция**
-   - Создает единый интерфейс для работы с игровым API
-   - Изолирует логику работы с API от остального кода
-
-2. **Совместимость с Screeps**
-   - Предоставляет интерфейс, аналогичный глобальному объекту Game
-   - Обеспечивает работу кода как в реальной игре, так и в режиме отладки
-
-3. **Упрощение тестирования**
-   - В режиме отладки предоставляет симулированный API
-   - Позволяет тестировать код без реальной игры
-
-4. **Унификация доступа**
-   - Объединяет константы и методы доступа в одном месте
-   - Упрощает использование в коде
-
-### 3. Базовый класс крипа (CreepBase.js)
-```mermaid
-classDiagram
-    class CreepBase {
-        +handleState()
-        +setState(newState)
-        +handleIdleState()
-        +handleMovingState()
-        +handleWorkingState()
-        +handleRenewingState()
-        +handleDyingState()
-    }
-```
-- Содержит общую логику для всех типов крипов
-- Определяет основные состояния крипа:
-  - IDLE (ожидание)
-  - MOVING (передвижение)
-  - WORKING (работа)
-  - RENEWING (обновление)
-  - DYING (смерть)
-- Реализует базовые методы для управления состояниями
-
-### 4. Специализированные классы крипов
+## Диаграмма классов
 
 ```mermaid
 classDiagram
@@ -113,170 +12,322 @@ classDiagram
     CreepBase <|-- Builder
     CreepBase <|-- Carrier
     CreepBase <|-- Attacker
-    
+    class GameStateManager {
+        -_createMemoryProxy()
+        -_createGameProxy()
+        -_findSimulated()
+        -_getRange()
+        -_isNearTo()
+        -_buildSimulatedObjects()
+        -_simulateStore()
+    }
+    class CreepBase {
+        +static STATES
+        +handleState()
+        -_handleIdleState()
+        -_handleMovingState()
+        -_handleWorkingState()
+        -_handleReturningState()
+        -_handleAttackingState()
+        -_handleDefendingState()
+        +setState()
+        +getState()
+        +findClosestTarget()
+    }
     class Harvester {
+        +checkAndDepositEnergy()
         +handleIdleState()
         +handleWorkingState()
+        +findDeliveryTarget()
     }
     class Builder {
+        +checkAndRefillEnergy()
         +handleIdleState()
         +handleWorkingState()
+        +findEnergySource()
     }
     class Carrier {
+        +checkAndRefillEnergy()
         +handleIdleState()
         +handleWorkingState()
-        +findEnergyTarget()
+        +findDeliveryTarget()
+        +findPickupTarget()
     }
     class Attacker {
         +handleIdleState()
         +handleWorkingState()
     }
-```
-
-#### Harvester (Harvester.js)
-- Сборщик энергии
-- Основные функции:
-  - Поиск ближайшего активного источника энергии
-  - Добыча энергии
-  - Перемещение к источнику
-
-#### Builder (Builder.js)
-- Строитель
-- Основные функции:
-  - Поиск ближайшей стройплощадки
-  - Строительство структур
-  - Перемещение к стройплощадке
-
-#### Carrier (Carrier.js)
-- Переносчик
-- Основные функции:
-  - Поиск целей для переноса энергии
-  - Перенос энергии между структурами
-  - Приоритеты целей:
-    1. Хранилище (storage)
-    2. Контроллер для улучшения
-    3. Спавнеры и расширения
-
-#### Attacker (Attacker.js)
-- Атакующий
-- Основные функции:
-  - Поиск вражеских крипов
-  - Атака врагов
-  - Перемещение к цели
-
-### 5. Основной файл (main.js)
-```mermaid
-flowchart TD
-    A[main.js] --> B[Инициализация GameStateManager]
-    A --> C[Логирование состояния]
-    A --> D[Очистка памяти]
-    A --> E[Управление спавном]
-    A --> F[Обработка крипов]
-    A --> G[Инициализация ScreepsAPI]
-    
-    B --> H[Определение режима работы]
-    C --> I[Запись состояния]
-    D --> J[Удаление мертвых крипов]
-    E --> K[Создание новых крипов]
-    F --> L[Обработка состояний]
-    G --> M[Создание API обертки]
-```
-
-Основные функции:
-- Инициализация менеджера состояния игры
-- Логирование состояния 
-- Очистка памяти мертвых крипов
-- Управление спавном новых крипов
-- Обработка всех крипов и их состояний
-- Инициализация ScreepsAPI
-
-### 6. Система состояний крипов
-
-```mermaid
-stateDiagram-v2
-    [*] --> IDLE
-    IDLE --> MOVING: Найдена цель
-    MOVING --> WORKING: Достиг цели
-    WORKING --> IDLE: Задача выполнена
-    WORKING --> MOVING: Цель недоступна
-    MOVING --> IDLE: Нет пути
-    IDLE --> RENEWING: Нужно обновление
-    RENEWING --> IDLE: Обновлен
-    IDLE --> DYING: Мало энергии
-    DYING --> [*]: Умер
-```
-
-Каждый крип может находиться в одном из следующих состояний:
-1. IDLE - ожидание новой задачи
-2. MOVING - перемещение к цели
-3. WORKING - выполнение основной задачи
-4. RENEWING - обновление в спавнере
-5. DYING - подготовка к смерти
-
-### 7. Управление спавном
-
-```mermaid
-flowchart TD
-    A[Управление спавном] --> B{Достаточно энергии?}
-    B -->|Да| C[Проверка количества крипов]
-    B -->|Нет| D[Ожидание]
-    C --> E{Нужны сборщики?}
-    E -->|Да| F[Создать сборщика]
-    E -->|Нет| G{Нужны строители?}
-    G -->|Да| H[Создать строителя]
-    G -->|Нет| I{Нужны переносчики?}
-    I -->|Да| J[Создать переносчика]
-    I -->|Нет| K{Нужны атакующие?}
-    K -->|Да| L[Создать атакующего]
-```
-
-Система автоматически создает крипов в зависимости от потребностей:
-- Приоритеты создания:
-  1. 2 сборщика энергии
-  2. 2 переносчика
-  3. 1 строитель
-  4. 0 атакующих (по умолчанию)
-
-### 8. Конфигурация тел крипов
-
-```mermaid
-classDiagram
-    class CreepBodies {
-        +Harvester: [WORK, WORK, WORK, CARRY, MOVE, MOVE] (550)
-        +Harvester: [WORK, WORK, CARRY, MOVE, MOVE] (400)
-        +Harvester: [WORK, WORK, CARRY, MOVE] (300)
-        +Builder: [WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE] (550)
-        +Builder: [WORK, WORK, CARRY, MOVE, MOVE] (400)
-        +Builder: [WORK, CARRY, MOVE, MOVE] (250)
-        +Carrier: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE] (600)
-        +Carrier: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE] (450)
-        +Carrier: [CARRY, CARRY, MOVE, MOVE] (300)
-        +Attacker: [TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE] (380)
-        +Attacker: [ATTACK, ATTACK, MOVE, MOVE] (260)
-        +Attacker: [ATTACK, MOVE] (130)
+    class Logger {
+        +static logState()
     }
 ```
 
-Каждый тип крипа имеет несколько конфигураций тела в зависимости от доступной энергии:
-- Сборщики: от 300 до 550 энергии
-- Строители: от 250 до 550 энергии
-- Переносчики: от 300 до 600 энергии
-- Атакующие: от 130 до 380 энергии
+## Детальное описание классов
 
-### 9. Логирование
+### GameStateManager
 
-```mermaid
-flowchart TD
-    A[Logger.js] --> B[Логирование состояния]
-    A --> C[Логирование ошибок]
-    A --> D[Логирование спавна]
-    B --> E[Запись каждые 5 тиков]
-    C --> F[Обработка исключений]
-    D --> G[Отслеживание создания крипов]
-```
+GameStateManager
+Реализует паттерн Proxy для абстракции доступа к игровым объектам.
+Поддерживает два режима работы:
+1. Production - работа с реальными объектами Game/Memory
+2. Debug - работа с симулированными объектами из JSON
 
-Система логирования включает:
-- Периодическое логирование состояния игры
-- Логирование ошибок и исключений
-- Отслеживание процесса спавна крипов
-- Запись важных событий в консоль
+**Используемые паттерны:**
+- Proxy Pattern - контроль доступа к объекту
+
+**Жизненный цикл:**
+- _createMemoryProxy
+- _createGameProxy
+
+**Потоки данных:**
+- Передает данные от GameStateManager к Math
+- Передает данные от GameStateManager к pos1
+- Передает данные от GameStateManager к pos2
+
+#### Методы
+
+- `private _createMemoryProxy(): void`
+  Реализует паттерн Proxy для абстракции доступа к памяти игры.
+В режиме отладки использует данные из state.memory,
+в production режиме - напрямую обращается к глобальному объекту Memory.
+  **Использует:** `this.state`
+- `private _createGameProxy(): void`
+  Реализует паттерн Proxy для абстракции доступа к игровым объектам.
+Поддерживает все основные операции с игровыми объектами:
+- Доступ к крипам, спавнам, структурам
+- Поиск объектов в комнатах
+- Работа с ресурсами и строительством
+  **Использует:** `this.state.game`, `this.state`, `this.state.game.creeps[name]`, `this.state.game.spawns[name]`, `originPos`, `candidates`, `candidate`
+- `private _findSimulated(): void`
+  Имитирует работу Game.find() для симулированных объектов.
+Поддерживает поиск:
+- Враждебных крипов
+- Источников энергии
+- Выпавших ресурсов
+- Строящихся объектов
+- Структур
+- Спавнов
+  **Использует:** `this.state.game`, `this.state`, `opts`, `roomData`, `results`, `roomData.hostileCreeps`, `hc`, `roomData.sources`, `s`, `roomData.droppedResources`, `r`, `roomData.constructionSites`, `cs`, `structure.pos`, `structure`, `this.state.game.spawns[name]`, `spawn.pos`, `spawn`, `console`
+- `private _getRange(): void`
+  **Использует:** `Math`, `pos1`, `pos2`
+- `private _isNearTo(): void`
+- `private _buildSimulatedObjects(): void`
+  Создает полноценные объекты с методами для симуляции
+на основе сырых данных из JSON. Поддерживает:
+- Крипов с методами move, say, harvest и т.д.
+- Структуры с методами transfer, store и т.д.
+- Ресурсы и другие игровые объекты
+  **Использует:** `this.state.game`, `this.state`, `this.state.memory`, `creepData`, `target`, `constants`, `console`, `targetPosOrObject`, `structData`, `spawnData`, `Object`, `body`, `spawnObject`, `creep`, `targetCreep`, `roomData`, `roomData.sources`, `sourceData`, `roomData.constructionSites`, `csData`, `roomData.hostileCreeps`, `hcData`, `controllerData`, `storageData`, `Object.keys(this.simulatedObjects)`
+- `private _simulateStore(): void`
+  Создает объект с методами для работы с хранилищем
+(transfer, withdraw и т.д.) на основе данных из JSON.
+  **Использует:** `simulatedStore`, `storeData`
+
+### CreepBase
+
+CreepBase
+Базовый класс, от которого наследуются все типы крипов.
+Реализует общую логику поведения и управления состоянием.
+Использует паттерн State для переключения между различными режимами работы.
+
+**Используемые паттерны:**
+- State Pattern - управление состоянием объекта
+
+**Жизненный цикл:**
+- handleState
+- _handleIdleState
+- _handleMovingState
+- _handleWorkingState
+- _handleReturningState
+- _handleAttackingState
+- _handleDefendingState
+
+**Состояния:**
+- 
+
+**Потоки данных:**
+- Передает данные от CreepBase к this.memory
+- Передает данные от CreepBase к CreepBase.STATES
+- Передает данные от CreepBase к CreepBase
+- Передает данные от CreepBase к this.creep
+- Передает данные от CreepBase к this.memory
+- Передает данные от CreepBase к this.gameState.game
+- Передает данные от CreepBase к this.gameState
+- Передает данные от CreepBase к this.creep
+
+#### Свойства
+
+- `STATES`: any
+
+#### Методы
+
+- `public handleState(): void`
+  Основной метод обработки состояния крипа.
+Вызывает соответствующий обработчик в зависимости от текущего состояния.
+Реализует паттерн State для управления поведением.
+  **Использует:** `this.gameState.game`, `this.gameState`, `this.creep`, `console`, `this.memory`, `CreepBase.STATES`, `CreepBase`
+- `private _handleIdleState(): void`
+  Определяет следующее действие крипа в состоянии ожидания.
+Может переключить крипа в состояние движения или работы.
+  **Использует:** `console`, `this.creep`, `this.memory`
+- `private _handleMovingState(): void`
+  Управляет движением крипа к целевой позиции.
+Переключает состояние на работу при достижении цели.
+  **Использует:** `this.memory`, `CreepBase.STATES`, `CreepBase`, `this.gameState.game`, `this.gameState`, `console`, `this.creep`, `this.creep.pos`, `target`
+- `private _handleWorkingState(): void`
+  Выполняет основное действие крипа (сбор ресурсов, строительство и т.д.).
+Переключает состояние на возврат при необходимости.
+  **Использует:** `console`, `this.creep`, `this.memory`
+- `private _handleReturningState(): void`
+  Управляет возвратом крипа на базу.
+Переключает состояние на ожидание при достижении базы.
+- `private _handleAttackingState(): void`
+  Управляет атакой крипа на цель.
+Переключает состояние на ожидание при уничтожении цели.
+- `private _handleDefendingState(): void`
+  Управляет защитой крипом указанной позиции.
+Переключает состояние на атаку при появлении врагов.
+- `public setState(): void`
+  Изменяет состояние крипа и обновляет его память.
+Используется для переключения между различными режимами работы.
+  **Использует:** `this.memory`, `CreepBase.STATES`, `CreepBase`, `this.creep`
+- `public getState(): void`
+  Возвращает текущее состояние крипа из его памяти.
+  **Использует:** `this.memory`
+- `public findClosestTarget(): void`
+  **Использует:** `this.gameState.game`, `this.gameState`, `this.creep`
+
+### Harvester
+
+**Наследуется от:** `CreepBase`
+
+**Жизненный цикл:**
+- handleIdleState
+- handleWorkingState
+
+**Состояния:**
+- Idle
+- Working
+
+**Потоки данных:**
+- Передает данные от Harvester к structure
+- Передает данные от Harvester к structure.store
+- Передает данные от Harvester к this.gameState.game
+- Передает данные от Harvester к this.gameState
+- Передает данные от Harvester к this.creep.pos
+- Передает данные от Harvester к this.creep
+- Передает данные от Harvester к room
+- Передает данные от Harvester к room.storage.store
+- Передает данные от Harvester к room.storage
+
+#### Методы
+
+- `public checkAndDepositEnergy(): void`
+  **Использует:** `this.memory`, `this.creep.store`, `this.creep`, `CreepBase`
+- `public handleIdleState(): void`
+  **Использует:** `this.memory`, `target`, `console`, `this.creep`, `CreepBase`, `this.gameState.game`, `this.gameState`, `source`
+- `public handleWorkingState(): void`
+  **Использует:** `this.memory`, `CreepBase`, `this.gameState.game`, `this.gameState`, `console`, `this.creep`, `this.creep.store`, `target`
+- `public findDeliveryTarget(): void`
+  **Использует:** `structure`, `structure.store`, `this.gameState.game`, `this.gameState`, `this.creep.pos`, `this.creep`, `room`, `room.storage.store`, `room.storage`
+
+### Builder
+
+**Наследуется от:** `CreepBase`
+
+**Жизненный цикл:**
+- handleIdleState
+- handleWorkingState
+
+**Состояния:**
+- Idle
+- Working
+
+#### Методы
+
+- `public checkAndRefillEnergy(): void`
+  **Использует:** `this.creep.store`, `this.creep`, `this.memory`, `CreepBase`
+- `public handleIdleState(): void`
+  **Использует:** `this.memory`, `energySource`, `CreepBase`, `this.creep`, `console`, `constructionSite`
+- `public handleWorkingState(): void`
+  **Использует:** `this.memory`, `CreepBase`, `this.gameState.game`, `this.gameState`, `console`, `this.creep`, `target`
+- `public findEnergySource(): void`
+  **Использует:** `s`, `s.store`, `console`, `this.creep`, `source`
+
+### Carrier
+
+**Наследуется от:** `CreepBase`
+
+**Жизненный цикл:**
+- handleIdleState
+- handleWorkingState
+
+**Состояния:**
+- Idle
+- Working
+
+**Потоки данных:**
+- Передает данные от Carrier к structure
+- Передает данные от Carrier к structure.store
+- Передает данные от Carrier к this.gameState.game
+- Передает данные от Carrier к this.gameState
+- Передает данные от Carrier к this.creep.pos
+- Передает данные от Carrier к this.creep
+- Передает данные от Carrier к room
+- Передает данные от Carrier к room.storage.store
+- Передает данные от Carrier к room.storage
+- Передает данные от Carrier к r
+- Передает данные от Carrier к s
+- Передает данные от Carrier к s.store
+- Передает данные от Carrier к this.gameState.game
+- Передает данные от Carrier к this.gameState
+- Передает данные от Carrier к this.creep.pos
+- Передает данные от Carrier к this.creep
+- Передает данные от Carrier к room
+- Передает данные от Carrier к room.storage.store
+- Передает данные от Carrier к room.storage
+
+#### Методы
+
+- `public checkAndRefillEnergy(): void`
+  **Использует:** `this.memory`, `this.creep.store`, `this.creep`, `CreepBase`
+- `public handleIdleState(): void`
+  **Использует:** `this.memory`, `target`, `console`, `this.creep`, `CreepBase`
+- `public handleWorkingState(): void`
+  **Использует:** `this.memory`, `CreepBase`, `this.gameState.game`, `this.gameState`, `console`, `this.creep`, `this.creep.store`, `target`
+- `public findDeliveryTarget(): void`
+  **Использует:** `structure`, `structure.store`, `this.gameState.game`, `this.gameState`, `this.creep.pos`, `this.creep`, `room`, `room.storage.store`, `room.storage`
+- `public findPickupTarget(): void`
+  **Использует:** `r`, `s`, `s.store`, `this.gameState.game`, `this.gameState`, `this.creep.pos`, `this.creep`, `room`, `room.storage.store`, `room.storage`
+
+### Attacker
+
+**Наследуется от:** `CreepBase`
+
+**Жизненный цикл:**
+- handleIdleState
+- handleWorkingState
+
+**Состояния:**
+- Idle
+- Working
+
+#### Методы
+
+- `public handleIdleState(): void`
+  **Использует:** `console`, `this.creep`, `enemy`, `this.memory`, `CreepBase`
+- `public handleWorkingState(): void`
+  **Использует:** `this.memory`, `CreepBase`, `this.gameState.game`, `this.gameState`, `target`, `console`, `this.creep`
+
+### Logger
+
+#### Методы
+
+- `public static logState(): void`
+  **Использует:** `new Date()`, `gameInstance`, `JSON`, `state.game`, `state`, `creep`, `creep.memory`, `creep.body`, `part`, `structure`, `spawn`, `spawn.spawning`, `room`, `room.controller`, `room.storage`, `room.find(FIND_SOURCES)`, `s`, `room.find(FIND_CONSTRUCTION_SITES)`, `cs`, `room.find(FIND_HOSTILE_CREEPS)`, `hc`, `hc.body`, `p`, `console`
+
+## Используемые паттерны и принципы
+
+- **Proxy Pattern - контроль доступа к объекту**
+- **State Pattern - управление состоянием объекта**
+

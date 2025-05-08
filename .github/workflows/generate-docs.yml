@@ -1,0 +1,40 @@
+name: Generate Architecture Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**/*.ts'
+      - 'src/**/*.js'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**/*.ts'
+      - 'src/**/*.js'
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Generate documentation
+      run: npm run generate
+    
+    - name: Check for changes
+      id: git-check
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add architecture.md
+        git diff --quiet && git diff --staged --quiet || (git commit -m "docs: update architecture documentation [skip ci]" && git push) 

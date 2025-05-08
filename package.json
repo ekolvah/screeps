@@ -1,17 +1,25 @@
 {
-  "name": "screeps-debug",
+  "name": "screeps-architecture-generator",
   "version": "1.0.0",
-  "description": "Screeps debugging environment",
-  "main": "main.js",
+  "description": "Генератор документации архитектуры для проекта Screeps",
+  "main": "generate-architecture.ts",
   "scripts": {
-    "start": "node main.js",
-    "debug": "node --inspect main.js"
+    "generate": "ts-node generate-architecture.ts",
+    "build": "tsc",
+    "test": "jest",
+    "start": "node main.js"
   },
   "dependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.1",
+    "@types/node": "^20.0.0",
     "lodash": "^4.17.21",
-    "screeps-api": "^1.14.0"
+    "@types/lodash": "^4.14.202",
+    "@types/screeps": "^3.3.7"
   },
   "devDependencies": {
-    "@types/screeps": "^3.3.0"
+    "@types/jest": "^29.5.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
   }
 }
