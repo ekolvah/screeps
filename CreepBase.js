@@ -182,10 +182,17 @@ class CreepBase {
         return this.memory.state;
     }
 
-    // Вспомогательный метод для поиска цели в текущей комнате крипа
+    /**
+     * Находит ближайшую цель указанного типа.
+     * 
+     * @public
+     * @param {number} findType - Тип искомых объектов (FIND_* константы)
+     * @param {Object} [opts] - Дополнительные опции поиска
+     * @param {Function} [opts.filter] - Функция фильтрации результатов
+     * @returns {Object|null} Найденный объект или null
+     */
     findClosestTarget(findType, opts) {
-        // Используем findClosestByRange через gameState.game
-        return this.gameState.game.findClosestByRange(this.creep.pos, findType, opts);
+        return this.gameState.findClosestByRange(this.creep.pos, findType, opts);
     }
 }
 

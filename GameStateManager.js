@@ -131,25 +131,6 @@ class GameStateManager {
                                 if (!room) return [];
                                 return this._findSimulated(roomName, findType, opts);
                             };
-                        case 'findClosestByRange':
-                            return (originPos, findType, opts) => {
-                                const candidates = this._findSimulated(originPos.roomName, findType, opts);
-                                if (!candidates.length) {
-                                    return null;
-                                }
-
-                                let closest = null;
-                                let minRange = Infinity;
-
-                                for (const candidate of candidates) {
-                                    const range = this._getRange(originPos, candidate.pos);
-                                    if (range < minRange) {
-                                        minRange = range;
-                                        closest = candidate;
-                                    }
-                                }
-                                return closest;
-                            };
                         default:
                             return this.state.game[prop];
                     }
@@ -310,10 +291,6 @@ class GameStateManager {
                         const targetPos = targetPosOrObject.pos || targetPosOrObject;
                         return this._isNearTo(creepData.pos, targetPos);
                     },
-                    findClosestByRange: (findType, opts) => {
-                        // Делегируем основному методу менеджера
-                        return this.findClosestByRange(creepData.pos, findType, opts);
-                    },
                 },
                 store: this._simulateStore(creepData.store), // Симулируем объект store
             };
@@ -446,6 +423,39 @@ class GameStateManager {
         };
 
         return simulatedStore;
+    }
+
+    /**
+     * Находит ближайший объект к указанной позиции.
+     * 
+     * @public
+     * @param {RoomPosition} originPos - Позиция, от которой ищем
+     * @param {number} findType - Тип искомых объектов (FIND_* константы)
+     * @param {Object} [opts] - Дополнительные опции поиска
+     * @param {Function} [opts.filter] - Функция фильтрации результатов
+     * @returns {Object|null} Найденный объект или null
+     */
+    findClosestByRange(originPos, findType, opts) {
+        if (this.isDebugging) {
+            const candidates = this._findSimulated(originPos.roomName, findType, opts);
+            if (!candidates.length) {
+                return null;
+            }
+
+            let closest = null;
+            let minRange = Infinity;
+
+            for (const candidate of candidates) {
+                const range = this._getRange(originPos, candidate.pos);
+                if (range < minRange) {
+                    minRange = range;
+                    closest = candidate;
+                }
+            }
+            return closest;
+        } else {
+            return Game.findClosestByRange(originPos, findType, opts);
+        }
     }
 }
 
