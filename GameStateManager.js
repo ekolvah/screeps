@@ -454,7 +454,8 @@ class GameStateManager {
             }
             return closest;
         } else {
-            return Game.findClosestByRange(originPos, findType, opts);
+            // В продакшене используем RoomPosition.findClosestByRange
+            return originPos.findClosestByRange(findType, opts);
         }
     }
 }
