@@ -48,4 +48,5 @@ class Attacker extends CreepBase {
     // handleMovingState используется из CreepBase
 }
 
-module.exports = Attacker;   
+module.exports = Attacker; 
+  
