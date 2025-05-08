@@ -56,6 +56,7 @@ classDiagram
     }
     class Logger {
         +static logState()
+        -static _safeCloneMemory()
     }
 ```
 
@@ -307,7 +308,9 @@ CreepBase
 #### Методы
 
 - `public static logState(): void`
-  **Использует:** `new Date()`, `gameInstance`, `JSON`, `state.game`, `state`, `creep`, `creep.memory`, `creep.body`, `part`, `structure`, `spawn`, `spawn.spawning`, `room`, `room.controller`, `room.storage`, `room.find(FIND_SOURCES)`, `s`, `room.find(FIND_CONSTRUCTION_SITES)`, `cs`, `room.find(FIND_HOSTILE_CREEPS)`, `hc`, `hc.body`, `p`, `console`
+  **Использует:** `new Date()`, `gameInstance`, `state.game`, `state`, `creep`, `creep.memory`, `creep.body`, `part`, `structure`, `spawn`, `spawn.spawning`, `room`, `room.controller`, `room.storage`, `room.find(FIND_SOURCES)`, `s`, `room.find(FIND_CONSTRUCTION_SITES)`, `cs`, `room.find(FIND_HOSTILE_CREEPS)`, `hc`, `hc.body`, `p`, `console`, `JSON`
+- `private static _safeCloneMemory(): void`
+  **Использует:** `memory`, `result`
 
 ## Используемые паттерны и принципы
 
