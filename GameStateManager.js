@@ -102,6 +102,31 @@ class GameStateManager {
                             return this.state.game.rooms;
                         case 'getObjectById':
                             return (id) => this.simulatedObjects[id] || null;
+                        case 'find':
+                            return (roomName, findType, opts) => {
+                                const room = this.state.game.rooms[roomName];
+                                if (!room) return [];
+                                return this._findSimulated(roomName, findType, opts);
+                            };
+                        case 'findClosestByRange':
+                            return (originPos, findType, opts) => {
+                                const candidates = this._findSimulated(originPos.roomName, findType, opts);
+                                if (!candidates.length) {
+                                    return null;
+                                }
+
+                                let closest = null;
+                                let minRange = Infinity;
+
+                                for (const candidate of candidates) {
+                                    const range = this._getRange(originPos, candidate.pos);
+                                    if (range < minRange) {
+                                        minRange = range;
+                                        closest = candidate;
+                                    }
+                                }
+                                return closest;
+                            };
                         default:
                             return this.state.game[prop];
                     }
@@ -115,132 +140,7 @@ class GameStateManager {
         return new Proxy({}, handler);
     }
 
-    /**
-     * Возвращает текущий тик игры.
-     * @returns {number}
-     */
-    getTime() {
-        return this.game.time;
-    }
-
-    /**
-     * Возвращает все объекты крипов.
-     * @returns {{ [creepName: string]: Creep | object }} Словарь крипов.
-     */
-    getCreeps() {
-        return this.game.creeps;
-    }
-
-    /**
-     * Возвращает все объекты структур.
-     * @returns {{ [structureId: string]: Structure | object }} Словарь структур.
-     */
-    getStructures() {
-        return this.game.structures;
-    }
-
-    /**
-     * Возвращает все объекты спавнов.
-     * @returns {{ [spawnName: string]: StructureSpawn | object }} Словарь спавнов.
-     */
-    getSpawns() {
-        return this.game.spawns;
-    }
-
-    getConstructionSites() {
-        return this.game.constructionSites;
-    }
-
-    getFlags() {
-        return this.game.flags;
-    }
-
-    getResources() {
-        return this.game.resources;
-    }
-
-    getMarket() {
-        return this.game.market;
-    }
-
-    getCpu() {
-        return this.game.cpu;
-    }
-
-    getMap() {
-        return this.game.map;
-    }
-
-    getShard() {
-        return this.game.shard;
-    }
-
-    getVisual() {
-        return this.game.visual;
-    }
-
-    getPathFinder() {
-        return this.game.pathFinder;
-    }
-
-    /**
-     * Возвращает все объекты комнат.
-     * @returns {{ [roomName: string]: Room | object }} Словарь комнат.
-     */
-    getRooms() {
-        return this.game.rooms;
-    }
-
     // --- Методы поиска (Симуляция) ---
-
-    /**
-     * Симулирует findClosestByRange для отладки.
-     * @param {RoomPosition} originPos Позиция, от которой ищем.
-     * @param {number} findType FIND_* константа.
-     * @param {object} [opts] Опции (например, filter).
-     * @returns {object | null} Симулированный ближайший объект или null.
-     */
-    findClosestByRange(originPos, findType, opts) {
-        if (!this.isDebugging) {
-            // В продакшене вызываем реальный метод комнаты
-            const room = Game.rooms[originPos.roomName];
-            return room ? room.findClosestByRange(findType, opts) : null;
-        }
-
-        const candidates = this._findSimulated(originPos.roomName, findType, opts);
-        if (!candidates.length) {
-            return null;
-        }
-
-        let closest = null;
-        let minRange = Infinity;
-
-        for (const candidate of candidates) {
-            const range = this._getRange(originPos, candidate.pos);
-            if (range < minRange) {
-                minRange = range;
-                closest = candidate;
-            }
-        }
-        return closest;
-    }
-
-    /**
-     * Симулирует find для отладки.
-     * @param {string} roomName Имя комнаты для поиска.
-     * @param {number} findType FIND_* константа.
-     * @param {object} [opts] Опции (например, filter).
-     * @returns {Array<object>} Массив симулированных объектов.
-     */
-    find(roomName, findType, opts) {
-        if (!this.isDebugging) {
-            const room = Game.rooms[roomName];
-            return room ? room.find(findType, opts) : [];
-        }
-        return this._findSimulated(roomName, findType, opts);
-    }
-
-    // --- Приватные методы симуляции ---
 
     /**
      * Находит симулированные объекты по типу и фильтру в указанной комнате.

@@ -149,7 +149,7 @@ class Harvester extends CreepBase {
 
         // Если рядом нет ничего, несем в хранилище
         if (!target) {
-             const room = this.gameState.getRooms()[this.creep.pos.roomName];
+             const room = this.gameState.game.rooms[this.creep.pos.roomName];
              if(room && room.storage && room.storage.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                  target = this.gameState.game.getObjectById(room.storage.id);
              }

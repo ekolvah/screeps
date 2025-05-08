@@ -41,7 +41,7 @@ class CreepBase {
 
     handleState() {
         // Проверяем, жив ли крип
-        if (!this.creep || (!this.gameState.getCreeps()[this.creep.name] && !this.gameState.isDebugging)) {
+        if (!this.creep || (!this.gameState.game.creeps[this.creep.name] && !this.gameState.isDebugging)) {
             console.log(`Creep ${this.creep?.name || 'unknown'} not found, skipping state handling.`);
             return;
         }
@@ -173,8 +173,8 @@ class CreepBase {
 
      // Вспомогательный метод для поиска цели в текущей комнате крипа
     findClosestTarget(findType, opts) {
-        // Используем findClosestByRange из симулированного pos
-        return this.creep.pos.findClosestByRange(findType, opts);
+        // Используем findClosestByRange через gameState.game
+        return this.gameState.game.findClosestByRange(this.creep.pos, findType, opts);
     }
 }
 

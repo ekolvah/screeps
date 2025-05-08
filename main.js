@@ -26,7 +26,7 @@ function getBodyForRole(role, gameStateManager) {
      // ВАЖНО: В дебаге это может быть неточным, если состояние комнаты не полное
      let energyAvailable = 300; // Значение по умолчанию
      if (!gameStateManager.isDebugging) {
-         const room = gameStateManager.getRooms()[gameStateManager.game.spawns['Spawn1']?.pos.roomName];
+         const room = gameStateManager.game.rooms[gameStateManager.game.spawns['Spawn1']?.pos.roomName];
          if (room) {
              energyAvailable = room.energyAvailable;
          }
@@ -80,7 +80,7 @@ function manageSpawn(gameStateManager) {
     }
 
     // Получаем крипов через менеджер состояния
-    const creepsInGame = gameStateManager.getCreeps();
+    const creepsInGame = gameStateManager.game.creeps;
     const creepsByRole = lodash.groupBy(creepsInGame, 'memory.role');
 
     // Задаем желаемое количество крипов для каждой роли
@@ -105,7 +105,7 @@ function manageSpawn(gameStateManager) {
 
     if (newRole) {
          const body = getBodyForRole(newRole, gameStateManager);
-         const name = `${newRole}-${gameStateManager.getTime()}`;
+         const name = `${newRole}-${gameStateManager.game.time}`;
          const memory = { memory: { role: newRole, state: CreepBase.STATE_IDLE } };
 
          // Проверяем достаточность энергии
@@ -113,7 +113,7 @@ function manageSpawn(gameStateManager) {
 
          let energyAvailable = 300;
          if (!gameStateManager.isDebugging) {
-            energyAvailable = gameStateManager.getRooms()[spawn.pos.roomName].energyAvailable;
+            energyAvailable = gameStateManager.game.rooms[spawn.pos.roomName].energyAvailable;
          } else if (gameStateManager.state.game.rooms[spawn.pos.roomName]) {
             energyAvailable = gameStateManager.state.game.rooms[spawn.pos.roomName].energyAvailable;
          }
@@ -151,13 +151,13 @@ function gameLoop() {
     console.log("GameStateManager initialized. Debug mode:", gameStateManager.isDebugging);
     if (gameStateManager.isDebugging) {
         console.log("Debug state loaded:", !!gameStateManager.state);
-        console.log("Current tick:", gameStateManager.getTime());
-        console.log("Available creeps:", Object.keys(gameStateManager.getCreeps()));
+        console.log("Current tick:", gameStateManager.game.time);
+        console.log("Available creeps:", Object.keys(gameStateManager.game.creeps));
     }
 
     // 2. Логирование состояния (только в продакшене)
     if (!gameStateManager.isDebugging) { 
-        console.log(`Tick ${gameStateManager.getTime()}:`);
+        console.log(`Tick ${gameStateManager.game.time}:`);
         Logger.logState(gameStateManager, gameStateManager.memory);
     }
 
@@ -165,7 +165,7 @@ function gameLoop() {
     const memory = gameStateManager.memory;
     if (!gameStateManager.isDebugging) {
         for (const name in memory.creeps) {
-            if (!gameStateManager.getCreeps()[name]) {
+            if (!gameStateManager.game.creeps[name]) {
                 console.log('Clearing non-existing creep memory:', name);
                 delete memory.creeps[name];
             }
@@ -173,7 +173,7 @@ function gameLoop() {
     }
 
     // 4. Обработка всех крипов
-    const creeps = gameStateManager.getCreeps();
+    const creeps = gameStateManager.game.creeps;
     for (const name in creeps) {
         const creep = creeps[name];
 
@@ -209,11 +209,11 @@ function gameLoop() {
     }
 
      // 6. Вывод информации о CPU
-    if (!gameStateManager.isDebugging && gameStateManager.getTime() % 10 === 0) {
-        const cpu = gameStateManager.getCpu();
+    if (!gameStateManager.isDebugging && gameStateManager.game.time % 10 === 0) {
+        const cpu = gameStateManager.game.cpu;
         console.log(`CPU Used: ${cpu.getUsed().toFixed(2)} / ${cpu.limit}. Bucket: ${cpu.bucket}`);
     } else if (gameStateManager.isDebugging) {
-        console.log(`DEBUG: End of Tick ${gameStateManager.getTime()}`);
+        console.log(`DEBUG: End of Tick ${gameStateManager.game.time}`);
     }
 }
 
