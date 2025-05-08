@@ -66,19 +66,19 @@ class CreepBase {
 
         switch (this.memory.state) {
             case CreepBase.STATES.STATE_IDLE:
-                this._handleIdleState();
+                this.handleIdleState();
                 break;
             case CreepBase.STATES.STATE_MOVING:
-                this._handleMovingState();
+                this.handleMovingState();
                 break;
             case CreepBase.STATES.STATE_WORKING:
-                this._handleWorkingState();
+                this.handleWorkingState();
                 break;
             case CreepBase.STATES.STATE_RENEWING:
-                this._handleRenewingState();
+                this.handleRenewingState();
                 break;
             case CreepBase.STATES.STATE_DYING:
-                this._handleDyingState();
+                this.handleDyingState();
                 break;
             default:
                 this.setState(CreepBase.STATES.STATE_IDLE);
@@ -92,7 +92,7 @@ class CreepBase {
      * @description Определяет следующее действие крипа в состоянии ожидания.
      * Может переключить крипа в состояние движения или работы.
      */
-    _handleIdleState() {
+    handleIdleState() {
         console.log(`WARN: Method handleIdleState not implemented for ${this.creep.name} (${this.memory.role})`);
         // throw new Error('Method handleIdleState must be implemented');
     }
@@ -105,7 +105,7 @@ class CreepBase {
      * @description Управляет движением крипа к целевой позиции.
      * Переключает состояние на работу при достижении цели.
      */
-    _handleMovingState() {
+    handleMovingState() {
         const targetId = this.memory.target;
         if (!targetId) {
             this.setState(CreepBase.STATES.STATE_IDLE);
@@ -127,7 +127,7 @@ class CreepBase {
             delete this.memory._move;
             this.setState(CreepBase.STATES.STATE_WORKING);
             // Сразу вызываем обработчик работы, чтобы не терять тик
-            this._handleWorkingState();
+            this.handleWorkingState();
         } else {
             // Используем симулированный moveTo
             const moveResult = this.creep.moveTo(target, { visualizePathStyle: { stroke: '#ffaa00' } });
@@ -141,53 +141,6 @@ class CreepBase {
                  console.log(`Creep ${this.creep.name}: moveTo returned ${moveResult}`);
             }
         }
-    }
-
-    /**
-     * Обрабатывает состояние работы.
-     * 
-     * @private
-     * @description Выполняет основное действие крипа (сбор ресурсов, строительство и т.д.).
-     * Переключает состояние на возврат при необходимости.
-     */
-    _handleWorkingState() {
-         console.log(`WARN: Method handleWorkingState not implemented for ${this.creep.name} (${this.memory.role})`);
-        // throw new Error('Method handleWorkingState must be implemented');
-    }
-
-     /**
-     * Обрабатывает состояние возврата.
-     * 
-     * @private
-     * @description Управляет возвратом крипа на базу.
-     * Переключает состояние на ожидание при достижении базы.
-     */
-    _handleReturningState() {
-        // ... existing code ...
-    }
-
-    /**
-     * Обрабатывает состояние атаки.
-     * 
-     * @private
-     * @param {Creep|Structure} target - Цель атаки
-     * @description Управляет атакой крипа на цель.
-     * Переключает состояние на ожидание при уничтожении цели.
-     */
-    _handleAttackingState(target) {
-        // ... existing code ...
-    }
-
-    /**
-     * Обрабатывает состояние защиты.
-     * 
-     * @private
-     * @param {RoomPosition} position - Позиция для защиты
-     * @description Управляет защитой крипом указанной позиции.
-     * Переключает состояние на атаку при появлении врагов.
-     */
-    _handleDefendingState(position) {
-        // ... existing code ...
     }
 
     /**
