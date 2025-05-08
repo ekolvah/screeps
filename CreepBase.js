@@ -189,4 +189,5 @@ class CreepBase {
     }
 }
 
+
 module.exports = CreepBase;
