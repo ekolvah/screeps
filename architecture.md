@@ -120,7 +120,7 @@ GameStateManager
 (transfer, withdraw и т.д.) на основе данных из JSON.
   **Использует:** `simulatedStore`, `storeData`
 - `public findClosestByRange(): void`
-  **Использует:** `originPos`, `candidates`, `candidate`, `Game`
+  **Использует:** `originPos`, `candidates`, `candidate`
 
 ### CreepBase
 
