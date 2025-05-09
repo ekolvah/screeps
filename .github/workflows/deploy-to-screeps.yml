@@ -28,12 +28,13 @@ jobs:
         npm install -g screeps-deploy
     
     - name: Build TypeScript
-      run: npm run build
+      run: |
+        npm run build
+        ls -la dist/
     
     - name: Deploy to Screeps
       env:
         SCREEPS_TOKEN: ${{ secrets.SCREEPS_TOKEN }}
         SCREEPSDEPLOY_CONFIG_PATH: ${{ github.workspace }}/screeps-deploy.config.js
       run: |
-        ls -la
         screeps-deploy --server main 

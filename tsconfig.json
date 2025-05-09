@@ -9,12 +9,18 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "rootDir": ".",
-    "declaration": true
+    "declaration": true,
+    "sourceMap": true,
+    "allowJs": true
   },
   "include": [
-    "*.ts",
-    "*.js",
-    "src/**/*"
+    "./*.js"
   ],
-  "exclude": ["node_modules", "**/*.test.ts", "dist"]
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "dist",
+    "generate-architecture.ts",
+    "generate-docs.js"
+  ]
 } 
