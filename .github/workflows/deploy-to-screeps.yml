@@ -42,15 +42,27 @@ jobs:
         SCREEPS_TOKEN: ${{ secrets.SCREEPS_TOKEN }}
         SCREEPSDEPLOY_CONFIG_PATH: ${{ github.workspace }}/.github/screeps-deploy.config.js
       run: |
+        echo "=== Environment Information ==="
         echo "Current working directory: $(pwd)"
         echo "GitHub workspace: ${{ github.workspace }}"
         echo "Config path: $SCREEPSDEPLOY_CONFIG_PATH"
-        echo "Checking if config file exists:"
-        ls -la $SCREEPSDEPLOY_CONFIG_PATH || echo "Config file not found!"
-        echo "Checking dist directory contents:"
-        ls -la ./dist
-        echo "Starting deployment..."
+        
+        echo -e "\n=== Directory Structure ==="
+        echo "Root directory contents:"
+        ls -la ${{ github.workspace }}
+        
+        echo -e "\n=== Dist Directory Details ==="
         DIST_PATH="${{ github.workspace }}/dist"
         echo "Using dist path: $DIST_PATH"
-        screeps-deploy --server main --path "$DIST_PATH"
+        echo "Dist directory exists: [ -d $DIST_PATH ] && echo 'Yes' || echo 'No'"
+        echo "Dist directory permissions:"
+        ls -la $DIST_PATH
+        
+        echo -e "\n=== Config File Contents ==="
+        echo "Config file exists: [ -f $SCREEPSDEPLOY_CONFIG_PATH ] && echo 'Yes' || echo 'No'"
+        cat $SCREEPSDEPLOY_CONFIG_PATH
+        
+        echo -e "\n=== Starting Deployment ==="
+        echo "Running screeps-deploy with path: $DIST_PATH"
+        screeps-deploy --server main --path "$DIST_PATH" --verbose
       working-directory: ${{ github.workspace }} 
