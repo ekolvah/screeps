@@ -10,5 +10,6 @@ module.exports = {
       branch: 'main',
       path: './dist'
     }
-  }  
+  }
+    
 }; 

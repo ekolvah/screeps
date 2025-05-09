@@ -74,7 +74,7 @@ jobs:
         curl -X POST \
           -H "X-Token: $SCREEPS_TOKEN" \
           -H "Content-Type: application/json" \
-          -d "{\"branch\":\"main\",\"modules\":$CODE_JSON}" \
+          -d "{\"branch\":\"default\",\"modules\":$CODE_JSON}" \
           https://screeps.com/api/user/code
         
         echo -e "\n=== Deployment Complete ==="
