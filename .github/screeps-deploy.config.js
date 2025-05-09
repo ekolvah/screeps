@@ -8,7 +8,7 @@ module.exports = {
       secure: true,
       token: process.env.SCREEPS_TOKEN,
       branch: 'main',
-      path: path.join(__dirname, '../dist')
+      path: './dist'
     }
   }
 }; 
