@@ -81,7 +81,6 @@ class GameStateManager {
         const handler = {
             get: (target, prop) => {
                 if (this.isDebugging) {
-                    // Для режима отладки
                     switch (prop) {
                         case 'creeps':
                             const creeps = {};
@@ -101,26 +100,8 @@ class GameStateManager {
                                 structures[id] = this.simulatedObjects[id];
                             }
                             return structures;
-                        case 'constructionSites':
-                            return this.state.game.constructionSites;
-                        case 'flags':
-                            return this.state.game.flags;
-                        case 'resources':
-                            return this.state.game.resources;
-                        case 'market':
-                            return this.state.game.market;
-                        case 'cpu':
-                            return this.state.game.cpu;
-                        case 'map':
-                            return this.state.game.map;
-                        case 'shard':
-                            return this.state.game.shard;
-                        case 'visual':
-                            return this.state.game.visual;
                         case 'time':
                             return this.state.tick;
-                        case 'pathFinder':
-                            return this.state.game.pathFinder;
                         case 'rooms':
                             return this.state.game.rooms;
                         case 'getObjectById':
@@ -135,7 +116,6 @@ class GameStateManager {
                             return this.state.game[prop];
                     }
                 } else {
-                    // Для продакшена
                     return Game[prop];
                 }
             }
