@@ -57,13 +57,14 @@ jobs:
         ls -la $DIST_PATH
         
         echo -e "\n=== Creating Config File ==="
-        CONFIG_DIR="/home/runner/.screeps-deploy"
-        mkdir -p $CONFIG_DIR
+        CONFIG_DIR="/opt/hostedtoolcache/node/18.20.8/x64/lib/node_modules/screeps-deploy"
         echo "module.exports = { servers: { main: { host: 'screeps.com', port: 443, secure: true, token: '$SCREEPS_TOKEN', branch: 'main', path: '$DIST_PATH' } } };" > $CONFIG_DIR/config.js
         echo "Config file created at: $CONFIG_DIR/config.js"
         cat $CONFIG_DIR/config.js
         
         echo -e "\n=== Starting Deployment ==="
         echo "Running screeps-deploy with path: $DIST_PATH"
+        export SCREEPSDEPLOY_CONFIG_PATH="$CONFIG_DIR/config.js"
+        echo "Using config path: $SCREEPSDEPLOY_CONFIG_PATH"
         screeps-deploy --server main --path "$DIST_PATH" --token "$SCREEPS_TOKEN" --branch main --verbose
       working-directory: ${{ github.workspace }} 
