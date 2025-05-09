@@ -5,7 +5,8 @@ module.exports = {
       port: 443,
       secure: true,
       token: process.env.SCREEPS_TOKEN,
-      branch: 'main'
+      branch: 'main',
+      src: 'dist'
     }
   }
 }; 

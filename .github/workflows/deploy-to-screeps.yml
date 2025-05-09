@@ -34,4 +34,4 @@ jobs:
       env:
         SCREEPSDEPLOY_CONFIG_PATH: ${{ github.workspace }}/screeps-deploy.config.js
       run: |
-        screeps-deploy --server main --path dist/ 
+        screeps-deploy --server main 
