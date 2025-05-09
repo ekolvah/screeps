@@ -8,7 +8,7 @@
     "build": "tsc",
     "test": "jest",
     "start": "node main.js",
-    "deploy": "screeps-deploy --server main"
+    "deploy": "screeps-deploy --server main --path ./dist"
   },
   "dependencies": {
     "@types/lodash": "^4.14.202",
