@@ -7,7 +7,8 @@
     "generate": "ts-node generate-architecture.ts",
     "build": "tsc",
     "test": "jest",
-    "start": "node main.js"
+    "start": "node main.js",
+    "deploy": "screeps-deploy --server main"
   },
   "dependencies": {
     "@types/lodash": "^4.14.202",

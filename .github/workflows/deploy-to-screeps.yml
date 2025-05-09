@@ -32,6 +32,7 @@ jobs:
     
     - name: Deploy to Screeps
       env:
+        SCREEPS_TOKEN: ${{ secrets.SCREEPS_TOKEN }}
         SCREEPSDEPLOY_CONFIG_PATH: ${{ github.workspace }}/screeps-deploy.config.js
       run: |
         screeps-deploy --server main 
