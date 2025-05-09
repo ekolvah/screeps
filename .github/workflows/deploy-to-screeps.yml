@@ -23,11 +23,13 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm install
+      run: |
+        npm install
+        npm install -g screeps-deploy
     
     - name: Build TypeScript
       run: npm run build
     
     - name: Deploy to Screeps
       run: |
-        npx screeps-deploy --token ${{ secrets.SCREEPS_TOKEN }} --branch main --path dist/ 
+        screeps-deploy --token ${{ secrets.SCREEPS_TOKEN }} --branch main --path dist/ 
