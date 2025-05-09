@@ -42,5 +42,13 @@ jobs:
         SCREEPS_TOKEN: ${{ secrets.SCREEPS_TOKEN }}
         SCREEPSDEPLOY_CONFIG_PATH: ${{ github.workspace }}/.github/screeps-deploy.config.js
       run: |
+        echo "Current working directory: $(pwd)"
+        echo "GitHub workspace: ${{ github.workspace }}"
+        echo "Config path: $SCREEPSDEPLOY_CONFIG_PATH"
+        echo "Checking if config file exists:"
+        ls -la $SCREEPSDEPLOY_CONFIG_PATH || echo "Config file not found!"
+        echo "Checking dist directory contents:"
+        ls -la ./dist
+        echo "Starting deployment..."
         screeps-deploy --server main --path ./dist
       working-directory: ${{ github.workspace }} 
