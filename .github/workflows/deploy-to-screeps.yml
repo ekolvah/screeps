@@ -50,5 +50,7 @@ jobs:
         echo "Checking dist directory contents:"
         ls -la ./dist
         echo "Starting deployment..."
-        screeps-deploy --server main --path ./dist
+        DIST_PATH="${{ github.workspace }}/dist"
+        echo "Using dist path: $DIST_PATH"
+        screeps-deploy --server main --path "$DIST_PATH"
       working-directory: ${{ github.workspace }} 
