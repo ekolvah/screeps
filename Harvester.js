@@ -157,13 +157,9 @@ class Harvester extends CreepBase {
                 target = this.gameState.game.getObjectById(room.storage.id);
             }
         }
-        // Можно добавить сброс на землю, если совсем некуда нести
-        // if (!target) { creep.drop(RESOURCE_ENERGY); }
 
         return target;
     }
-
-    // handleMovingState используется из CreepBase
 }
 
 module.exports = Harvester;

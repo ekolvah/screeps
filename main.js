@@ -142,7 +142,7 @@ function manageSpawn(gameStateManager) {
 
 // Основная функция игрового цикла
 function gameLoop() {
-    console.log("Starting game loop...");
+    console.log("-----Starting game loop-----");
     
     // 1. Инициализация менеджера состояния
     console.log("Initializing GameStateManager...");
@@ -207,24 +207,15 @@ function gameLoop() {
     } catch (error) {
          console.log(`Error during spawn management: ${error.stack || error}`);
     }
-
-     // 6. Вывод информации о CPU
-    if (!gameStateManager.isDebugging && gameStateManager.game.time % 10 === 0) {
-        const cpu = gameStateManager.game.cpu;
-        console.log(`CPU Used: ${cpu.getUsed().toFixed(2)} / ${cpu.limit}. Bucket: ${cpu.bucket}`);
-    } else if (gameStateManager.isDebugging) {
-        console.log(`DEBUG: End of Tick ${gameStateManager.game.time}`);
-    }
 }
 
-// Экспортируем функцию loop по-разному для продакшена и отладки
+// Экспортируем функцию loop по-разному для продакшена и отладки для возможности использования брекпоинтов в дебаге
+// Используем Config вместо gameStateManager потому что он инициализируется только в gameLoop
 if (Config.DEBUG_MODE) {
-    // В режиме отладки экспортируем как обычную функцию и сразу запускаем
     module.exports.loop = gameLoop;
     console.log("Debug mode detected, running first game loop...");
     gameLoop();
 } else {
-    // В продакшене экспортируем как анонимную функцию (стандартный формат Screeps)
     module.exports.loop = function() {
         gameLoop();
     };
