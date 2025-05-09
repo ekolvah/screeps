@@ -41,30 +41,41 @@ jobs:
       env:
         SCREEPS_TOKEN: ${{ secrets.SCREEPS_TOKEN }}
       run: |
+        echo "=== Installing Dependencies ==="
+        sudo apt-get update
+        sudo apt-get install -y jq
+        
         echo "=== Environment Information ==="
         echo "Current working directory: $(pwd)"
         echo "GitHub workspace: ${{ github.workspace }}"
         
-        echo -e "\n=== Directory Structure ==="
-        echo "Root directory contents:"
-        ls -la ${{ github.workspace }}
-        
         echo -e "\n=== Dist Directory Details ==="
         DIST_PATH="${{ github.workspace }}/dist"
         echo "Using dist path: $DIST_PATH"
-        echo "Dist directory exists: [ -d $DIST_PATH ] && echo 'Yes' || echo 'No'"
-        echo "Dist directory permissions:"
-        ls -la $DIST_PATH
         
-        echo -e "\n=== Creating Config File ==="
-        CONFIG_DIR="/opt/hostedtoolcache/node/18.20.8/x64/lib/node_modules/screeps-deploy"
-        echo "module.exports = { servers: { main: { host: 'screeps.com', port: 443, secure: true, token: '$SCREEPS_TOKEN', branch: 'main', path: '$DIST_PATH' } } };" > $CONFIG_DIR/config.js
-        echo "Config file created at: $CONFIG_DIR/config.js"
-        cat $CONFIG_DIR/config.js
+        echo -e "\n=== Preparing Code for Deployment ==="
+        # Создаем временный файл с кодом
+        cd $DIST_PATH
+        CODE_FILES=$(find . -name "*.js" -not -name "*.d.ts" -not -name "*.js.map")
+        echo "Found files:"
+        echo "$CODE_FILES"
         
-        echo -e "\n=== Starting Deployment ==="
-        echo "Running screeps-deploy with path: $DIST_PATH"
-        export SCREEPSDEPLOY_CONFIG_PATH="$CONFIG_DIR/config.js"
-        echo "Using config path: $SCREEPSDEPLOY_CONFIG_PATH"
-        screeps-deploy --server main --path "$DIST_PATH" --token "$SCREEPS_TOKEN" --branch main --verbose
+        # Создаем JSON с кодом
+        CODE_JSON="{"
+        for file in $CODE_FILES; do
+          filename=$(basename "$file" .js)
+          content=$(cat "$file" | jq -Rs .)
+          CODE_JSON="$CODE_JSON\"$filename\":$content,"
+        done
+        CODE_JSON="${CODE_JSON%,}}"
+        
+        echo -e "\n=== Deploying to Screeps ==="
+        echo "Sending code to Screeps..."
+        curl -X POST \
+          -H "X-Token: $SCREEPS_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"branch\":\"main\",\"modules\":$CODE_JSON}" \
+          https://screeps.com/api/user/code
+        
+        echo -e "\n=== Deployment Complete ==="
       working-directory: ${{ github.workspace }} 
