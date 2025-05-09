@@ -1,0 +1,33 @@
+name: Deploy to Screeps
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**/*.js'
+      - '**/*.ts'
+      - 'package.json'
+      - 'tsconfig.json'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Build TypeScript
+      run: npm run build
+    
+    - name: Deploy to Screeps
+      run: |
+        npx screeps-deploy --token ${{ secrets.SCREEPS_TOKEN }} --branch main --path dist/ 
