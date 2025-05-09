@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   servers: {
     main: {
@@ -6,7 +8,7 @@ module.exports = {
       secure: true,
       token: process.env.SCREEPS_TOKEN,
       branch: 'main',
-      path: process.cwd() + '/dist'
+      path: path.join(__dirname, '../dist')
     }
   }
 }; 

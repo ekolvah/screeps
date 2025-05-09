@@ -30,6 +30,11 @@ jobs:
     - name: Build TypeScript
       run: |
         npm run build
+        if [ ! -d "./dist" ]; then
+          echo "Error: dist directory not found after build."
+          exit 1
+        fi
+        echo "Contents of dist directory:"
         ls -la dist/
     
     - name: Deploy to Screeps
@@ -37,4 +42,5 @@ jobs:
         SCREEPS_TOKEN: ${{ secrets.SCREEPS_TOKEN }}
         SCREEPSDEPLOY_CONFIG_PATH: ${{ github.workspace }}/.github/screeps-deploy.config.js
       run: |
-        screeps-deploy --server main --path ./dist 
+        screeps-deploy --server main --path ./dist
+      working-directory: ${{ github.workspace }} 
