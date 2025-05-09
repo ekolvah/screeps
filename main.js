@@ -161,6 +161,7 @@ function gameLoop() {
         Logger.logState(gameStateManager.game, gameStateManager.memory);
     }
 
+    
     // 3. Очистка памяти мертвых крипов
     const memory = gameStateManager.memory;
     if (!gameStateManager.isDebugging) {
